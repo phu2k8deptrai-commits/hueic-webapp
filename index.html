@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SchoolPulse – Cổng Đăng Nhập & Quản Lý Đào Tạo</title>
+  
+  <meta name="theme-color" content="#1976D2">
+  <link rel="icon" type="image/png" href="assets/hueic_logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core Scripts & Styling -->
+  <script src="db_data.js"></script>
+  <script src="common.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', '"Inter"', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            edu: {
+              primary: '#1976D2',
+              primaryHover: '#1565C0',
+              primaryBright: '#007AFF',
+              primarySoft: '#EBF4FF',
+              bg: '#F4F6F9',
+              surface: '#FFFFFF',
+              surfaceSub: '#F8FAFC',
+              border: '#E5E7EB',
+              textMain: '#1C1E21',
+              textSecondary: '#6B7280',
+              textMuted: '#9CA3AF',
+              success: '#16A34A',
+              successBg: '#F0FDF4',
+              warning: '#EA580C',
+              warningBg: '#FFF7ED',
+              danger: '#DC2626',
+              dangerBg: '#FEF2F2',
+              purple: '#7C3AED',
+              purpleBg: '#F5F3FF'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --edu-primary: #1976D2;
+      --edu-primary-hover: #1565C0;
+      --edu-primary-bright: #007AFF;
+      --edu-primary-soft: #EBF4FF;
+      --edu-bg: #F4F6F9;
+      --edu-surface: #FFFFFF;
+      --edu-surface-sub: #F8FAFC;
+      --edu-border: #E5E7EB;
+      --edu-text-main: #1C1E21;
+      --edu-text-secondary: #6B7280;
+      --edu-text-muted: #9CA3AF;
+      --edu-success: #16A34A;
+      --edu-success-bg: #F0FDF4;
+      --edu-warning: #EA580C;
+      --edu-warning-bg: #FFF7ED;
+      --edu-danger: #DC2626;
+      --edu-danger-bg: #FEF2F2;
+      --edu-purple: #7C3AED;
+      --edu-purple-bg: #F5F3FF;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background-color: var(--edu-bg);
+      color: var(--edu-text-main);
+      overflow-x: hidden;
+    }
+
+    .login-card {
+      animation: cardIn 0.55s cubic-bezier(.22, 1, .36, 1) both;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .demo-role-btn,
+    .expert-card,
+    #loginForm button,
+    #loginForm input,
+    #forgotPasswordModal {
+      transition:
+        box-shadow .2s ease,
+        border-color .2s ease,
+        background-color .2s ease,
+        transform .2s ease,
+        opacity .2s ease;
+    }
+
+    .demo-role-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    #loginForm button:active,
+    .demo-role-btn:active {
+      transform: scale(.98);
+    }
+
+    #loginForm input:focus {
+      box-shadow: 0 0 0 4px rgba(25, 118, 210, .10);
+    }
+
+    #childPreviewBadge:not(.hidden) {
+      animation: badgeIn .25s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    @keyframes badgeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px) scale(.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    #loginError:not(.hidden),
+    #forgotAlert:not(.hidden) {
+      animation: alertShake .28s ease-out;
+    }
+
+    @keyframes alertShake {
+      0%, 100% { transform: translateX(0); }
+      35% { transform: translateX(-4px); }
+      70% { transform: translateX(4px); }
+    }
+
+    #forgotPasswordModal:not(.hidden) {
+      animation: modalBackdropIn .22s ease-out;
+    }
+
+    #forgotPasswordModal:not(.hidden) > div {
+      animation: modalIn .28s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    @keyframes modalBackdropIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased bg-[#F4F6F9] text-[#1C1E21]">
+
+  <!-- Top Accent Bar Edu.One Brand Ribbon -->
+  <div class="h-1.5 w-full bg-gradient-to-r from-[#2BB8A8] via-[#5C6FB5] to-[#1976D2]"></div>
+
+  <!-- Header Topbar -->
+  <header class="bg-white border-b border-[#E5E7EB] px-6 sm:px-10 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3.5">
+        <img src="assets/hueic_logo.png" alt="HueIC Logo" class="w-10 h-10 object-contain rounded-md" />
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold text-[#1C1E21] tracking-tight">SchoolPulse</h1>
+            <span class="text-[11px] font-semibold bg-[#EBF4FF] text-[#1976D2] px-2 py-0.5 rounded border border-[#BFDBFE]">Edu.One Portal</span>
+          </div>
+          <p class="text-xs text-[#6B7280]">Trường Cao Đẳng Công Nghiệp Huế • Cổng Đào Tạo & Sổ Liên Lạc Điện Tử</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 sm:gap-4 text-xs text-[#6B7280]">
+        <button
+          type="button"
+          onclick="openOrgModal()"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50/90 hover:bg-blue-100 text-[#1976D2] font-semibold transition cursor-pointer text-xs shadow-xs"
+          title="Xem Cơ cấu tổ chức Trường Cao Đẳng Công Nghiệp Huế"
+        >
+          <i data-lucide="network" class="w-3.5 h-3.5 text-[#1976D2]"></i>
+          <span class="hidden xs:inline">Cơ cấu tổ chức HueIC</span>
+          <span class="xs:hidden">Cơ cấu HueIC</span>
+        </button>
+        <span class="hidden md:inline font-medium">Năm học 2026 – 2027</span>
+        <span class="hidden sm:inline-flex items-center gap-1.5 text-[#16A34A] bg-[#F0FDF4] px-2.5 py-1 rounded-full font-medium border border-[#DCFCE7]">
+          <span class="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
+          Hệ thống trực tuyến
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Login Card Area -->
+  <main class="flex-1 flex items-center justify-center p-4 sm:p-6 my-6">
+    <div class="login-card bg-white rounded-2xl border border-[#E5E7EB] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] max-w-md w-full p-6 sm:p-8 space-y-5">
+      
+      <!-- Card Heading -->
+      <div class="text-center sm:text-left">
+        <h2 class="text-xl font-bold text-[#1C1E21] tracking-tight">Đăng nhập tài khoản</h2>
+        <p class="text-xs text-[#6B7280] mt-1">Sử dụng Mã sinh viên, Số điện thoại hoặc Email để truy cập hệ thống</p>
+      </div>
+
+      <!-- Alert Box -->
+      <div id="loginError" role="alert" aria-live="polite" class="hidden p-3 bg-red-50 border border-red-200 border-l-4 border-l-red-600 text-red-700 text-xs rounded-r-lg font-medium shadow-xs"></div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="space-y-4">
+        
+        <div>
+          <label for="identifier" class="block text-xs font-semibold text-[#374151] mb-1.5 flex items-center justify-between">
+            <span>Tài khoản đăng nhập</span>
+            <span class="text-[11px] font-normal text-slate-500">Mã SV của con hoặc SĐT</span>
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="user" class="w-4 h-4"></i>
+            </span>
+            <input
+              type="text"
+              id="identifier"
+              name="identifier"
+              placeholder="Nhập Mã sinh viên của con (VD: HUEIC2601), SĐT..."
+              required
+              autocomplete="username"
+              inputmode="text"
+              class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#D1D5DB] rounded-lg text-sm text-[#1C1E21] placeholder-[#9CA3AF] outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/15 transition"
+            />
+          </div>
+
+          <!-- Real-time Child Recognition Preview Badge -->
+          <div id="childPreviewBadge" class="hidden mt-2 p-3 bg-gradient-to-br from-blue-50/95 via-indigo-50/70 to-slate-50 border border-blue-200 rounded-xl shadow-xs transition-all duration-200">
+            <div class="flex items-start justify-between gap-2 pb-2 border-b border-blue-100">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-[11px] font-bold text-blue-900 flex items-center gap-1.5">
+                    <span>Nhận diện sinh viên thành công</span>
+                    <span class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-mono font-semibold" id="previewStudentCode">HUEIC2601</span>
+                  </div>
+                  <div class="text-xs font-bold text-slate-800" id="previewStudentName">Nguyễn Hoàng Long</div>
+                </div>
+              </div>
+              <span class="text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Đang học
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-x-2 gap-y-1.5 py-2 text-[11px] text-slate-600 border-b border-blue-100/70">
+              <div>
+                <span class="text-slate-400 block text-[10px]">Lớp học:</span>
+                <strong class="text-slate-700 font-semibold truncate block" id="previewClassName">CĐ CNTT K48A</strong>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px]">Giảng viên CVHT:</span>
+                <strong class="text-slate-700 font-semibold truncate block" id="previewTeacherName">Thầy Nguyễn Văn An</strong>
+              </div>
+              <div class="col-span-2">
+                <span class="text-slate-400 block text-[10px]">Phụ huynh liên kết:</span>
+                <div class="flex items-center gap-1">
+                  <strong class="text-slate-700 font-semibold" id="previewParentName">Nguyễn Văn Long</strong>
+                  <span class="text-slate-400 font-mono text-[10px]" id="previewParentPhone">(0903000001)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 flex items-center gap-2">
+              <button
+                type="button"
+                id="btnQuickLoginStudent"
+                class="flex-1 py-1.5 px-2 bg-white hover:bg-blue-50/80 border border-blue-300 text-blue-700 text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                <span>Cổng Sinh viên</span>
+              </button>
+              <button
+                type="button"
+                id="btnQuickLoginParent"
+                class="flex-1 py-1.5 px-2 bg-[#1976D2] hover:bg-[#1565C0] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span>Sổ liên lạc Phụ huynh</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="password" class="text-xs font-semibold text-[#374151]">
+              Mật khẩu xác thực
+            </label>
+            <a href="javascript:void(0)" onclick="openForgotPasswordModal()" class="text-[11px] font-medium text-[#1976D2] hover:text-[#1565C0] hover:underline cursor-pointer">
+              Quên mật khẩu?
+            </a>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password"
+              class="w-full pl-10 pr-10 py-2.5 bg-white border border-[#D1D5DB] rounded-lg text-sm text-[#1C1E21] placeholder-[#9CA3AF] outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/15 transition"
+            />
+            <button
+              type="button"
+              id="togglePwdBtn"
+              aria-label="Hiện mật khẩu"
+              aria-pressed="false"
+              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#9CA3AF] hover:text-[#4B5563] cursor-pointer"
+              title="Hiện/Ẩn mật khẩu"
+            >
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Khối CAPTCHA xác thực bảo mật (Theo ảnh mẫu) -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="captchaInput" class="text-xs font-semibold text-[#374151]">
+              Mã xác thực bảo mật
+            </label>
+            <span class="text-[11px] text-slate-400">Nhập ký tự trong hình bên</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <!-- Ô nhập mã -->
+            <div class="relative flex-1">
+              <input
+                type="text"
+                id="captchaInput"
+                name="captchaInput"
+                placeholder="Nhập mã"
+                autocomplete="off"
+                inputmode="text"
+                autocapitalize="characters"
+                spellcheck="false"
+                maxlength="6"
+                required
+                class="w-full px-3.5 py-2.5 bg-white border border-[#D1D5DB] rounded-lg text-sm font-bold tracking-widest text-[#1C1E21] placeholder-[#9CA3AF] outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/15 transition uppercase"
+              />
+            </div>
+
+            <!-- Nút xoay đổi mã mới màu cam như trong ảnh -->
+            <button
+              type="button"
+              id="btnRefreshCaptcha"
+              onclick="refreshCaptcha()"
+              title="Đổi mã bảo vệ khác"
+              class="w-10 h-10 rounded-lg flex items-center justify-center text-[#EA580C] hover:text-[#C2410C] hover:bg-orange-50 active:scale-90 transition cursor-pointer shrink-0 border border-slate-200 hover:border-orange-300 shadow-2xs"
+            >
+              <svg class="w-5 h-5 text-[#EA580C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                <path d="M16 16h5v5"/>
+              </svg>
+            </button>
+
+            <!-- Khung vẽ CAPTCHA -->
+            <div class="relative border border-[#CBD5E1] rounded-lg overflow-hidden bg-white shadow-2xs shrink-0 cursor-pointer hover:border-blue-400 transition" onclick="refreshCaptcha()" title="Nhấn vào hình để đổi mã">
+              <canvas id="captchaCanvas" width="128" height="40" class="block"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-0.5">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="rememberMe" checked class="w-4 h-4 rounded text-[#1976D2] border-slate-300 focus:ring-[#1976D2]/20">
+            <span class="text-xs text-slate-600">Ghi nhớ đăng nhập trên thiết bị này</span>
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-2.5 px-4 bg-[#1976D2] hover:bg-[#1565C0] active:scale-[0.99] text-white font-semibold text-sm rounded-lg shadow-sm transition duration-150 cursor-pointer mt-1 flex items-center justify-center gap-2"
+        >
+          <span>Đăng nhập hệ thống</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+
+      </form>
+
+      <!-- Preset Demo Role Accounts -->
+      <div class="border-t border-[#E5E7EB] pt-4">
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="text-xs font-semibold text-[#374151] flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#1976D2]"></i>
+            Tài khoản mẫu trải nghiệm
+          </span>
+          <span class="text-[11px] text-[#6B7280]">Chọn vai trò để điền nhanh</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <!-- Role 1: Admin -->
+          <button
+            type="button"
+            onclick="fillDemo('bgh@hueic.edu.vn', 'admin123', 'ADMIN', this)"
+            class="demo-role-btn group p-2.5 rounded-xl border border-[#E5E7EB] bg-white hover:bg-[#EBF4FF] hover:border-[#1976D2] text-left transition duration-150 cursor-pointer flex items-center gap-2.5"
+          >
+            <div class="w-7 h-7 rounded-lg bg-[#EBF4FF] text-[#1976D2] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-[#1C1E21] group-hover:text-[#1976D2] truncate">Quản trị &amp; BGH</div>
+              <div class="text-[10px] text-[#6B7280] truncate">TS. Phạm Văn Quân</div>
+            </div>
+          </button>
+
+          <!-- Role 2: Teacher -->
+          <button
+            type="button"
+            onclick="selectTeacherRole(this)"
+            class="demo-role-btn group p-2.5 rounded-xl border border-[#E5E7EB] bg-white hover:bg-[#F0FDF4] hover:border-[#16A34A] text-left transition duration-150 cursor-pointer flex items-center gap-2.5"
+          >
+            <div class="w-7 h-7 rounded-lg bg-[#F0FDF4] text-[#16A34A] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-[#1C1E21] group-hover:text-[#16A34A] truncate">Giảng viên</div>
+              <div class="text-[10px] text-[#6B7280] truncate">ThS. Nguyễn Văn An</div>
+            </div>
+          </button>
+
+          <!-- Role 3: Student -->
+          <button
+            type="button"
+            id="roleBtnStudent"
+            onclick="selectStudentRole(this)"
+            class="demo-role-btn group p-2.5 rounded-xl border border-[#E5E7EB] bg-white hover:bg-[#FFF7ED] hover:border-[#EA580C] text-left transition duration-150 cursor-pointer flex items-center gap-2.5"
+          >
+            <div class="w-7 h-7 rounded-lg bg-[#FFF7ED] text-[#EA580C] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <i data-lucide="book-open" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-[#1C1E21] group-hover:text-[#EA580C] truncate">Sinh viên</div>
+              <div id="roleBtnStudentDesc" class="text-[10px] text-[#6B7280] truncate">Yêu cầu nhập Mã SV</div>
+            </div>
+          </button>
+
+          <!-- Role 4: Parent -->
+          <button
+            type="button"
+            id="roleBtnParent"
+            onclick="selectParentRole(this)"
+            class="demo-role-btn group p-2.5 rounded-xl border border-[#E5E7EB] bg-white hover:bg-[#F5F3FF] hover:border-[#7C3AED] text-left transition duration-150 cursor-pointer flex items-center gap-2.5"
+          >
+            <div class="w-7 h-7 rounded-lg bg-[#F5F3FF] text-[#7C3AED] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-[#1C1E21] group-hover:text-[#7C3AED] truncate">Phụ huynh</div>
+              <div id="roleBtnParentDesc" class="text-[10px] text-[#6B7280] truncate">Chỉ cần nhập Mã SV con</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Quick Hint Status -->
+        <div id="demoSelectedHint" class="hidden mt-2.5 text-center text-xs text-[#1976D2] bg-[#EBF4FF] border border-[#BFDBFE] py-1.5 px-3 rounded-lg animate-fadeIn flex items-center justify-center gap-1.5">
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#1976D2] flex-shrink-0"></i>
+          <span id="demoSelectedText">Đã điền tài khoản mẫu. Nhấn <strong>Đăng nhập</strong> để tiếp tục!</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal Khôi phục mật khẩu (Gửi mã OTP về Số điện thoại hoặc Gmail) -->
+  <div
+    id="forgotPasswordModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="forgotPasswordTitle"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
+  >
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden transition-all transform">
+      
+      <!-- Modal Header -->
+      <div class="p-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-white border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#1976D2] text-white flex items-center justify-center shadow-xs">
+            <i data-lucide="key-round" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="forgotPasswordTitle" class="text-base font-bold text-slate-900">Khôi phục mật khẩu</h3>
+            <p class="text-xs text-slate-500">Nhận mã OTP qua Số điện thoại hoặc Gmail</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="closeForgotPasswordModal()"
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+        >
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4">
+        
+        <!-- Alert Box -->
+        <div id="forgotAlert" class="hidden p-3 rounded-lg text-xs font-medium"></div>
+
+        <!-- Step 1: Chọn hình thức & Nhập số điện thoại/Email -->
+        <div id="forgotStep1" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-2">Chọn phương thức nhận mã OTP:</label>
+            <div class="grid grid-cols-2 gap-2.5">
+              <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-blue-500 bg-blue-50/60 cursor-pointer transition select-none" id="labelMethodPhone">
+                <input type="radio" name="recoveryMethod" value="phone" checked onchange="toggleRecoveryMethod('phone')" class="text-blue-600 focus:ring-blue-500 w-4 h-4" />
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                    <i data-lucide="smartphone" class="w-3.5 h-3.5 text-blue-600"></i>
+                    <span>Số điện thoại</span>
+                  </div>
+                  <div class="text-[10px] text-slate-500 truncate">Nhận tin nhắn SMS</div>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition select-none" id="labelMethodEmail">
+                <input type="radio" name="recoveryMethod" value="email" onchange="toggleRecoveryMethod('email')" class="text-blue-600 focus:ring-blue-500 w-4 h-4" />
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                    <i data-lucide="mail" class="w-3.5 h-3.5 text-indigo-600"></i>
+                    <span>Gmail / Email</span>
+                  </div>
+                  <div class="text-[10px] text-slate-500 truncate">Nhận thư xác thực</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label id="lblRecoveryInput" for="recoveryTarget" class="block text-xs font-semibold text-slate-700 mb-1.5">
+              Số điện thoại đã đăng ký:
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400" id="iconRecoveryTarget">
+                <i data-lucide="phone" class="w-4 h-4"></i>
+              </span>
+              <input
+                type="text"
+                id="recoveryTarget"
+                placeholder="Nhập số điện thoại (VD: 0903000001, 0902000001...)"
+                class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15 transition"
+              />
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+              <span>Mẫu thử nhanh:</span>
+              <button type="button" onclick="setQuickRecovery('0903000001')" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 cursor-pointer transition">Phụ huynh (0903000001)</button>
+              <button type="button" onclick="setQuickRecovery('0902000001')" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 cursor-pointer transition">GV (0902000001)</button>
+              <button type="button" onclick="setQuickRecovery('bgh@hueic.edu.vn')" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 cursor-pointer transition">bgh@hueic.edu.vn</button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="btnSendOtp"
+            onclick="handleSendOtp()"
+            class="w-full py-2.5 px-4 bg-[#1976D2] hover:bg-[#1565C0] text-white font-semibold text-sm rounded-lg shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>Gửi mã xác nhận OTP</span>
+          </button>
+        </div>
+
+        <!-- Khung hiển thị mô phỏng nhận mã SMS / Gmail -->
+        <div id="simulatedMessageCard" class="hidden p-3.5 bg-gradient-to-br from-amber-50 to-orange-50/70 border border-amber-200 rounded-xl space-y-2 animate-fadeIn">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-amber-900 font-bold text-xs" id="simulatedMsgHeader">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              <span>💬 Tin nhắn SMS mới từ HUEIC-EDU</span>
+            </div>
+            <span class="text-[10px] text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded font-mono" id="simulatedTime">Vừa xong</span>
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed" id="simulatedMsgBody">
+            [HueIC OTP]: Mã xác thực đặt lại mật khẩu của bạn là: <strong class="text-base text-blue-700 font-bold tracking-wider" id="simulatedOtpDisplay">123456</strong>. Hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.
+          </p>
+          <div class="pt-1 flex items-center justify-end">
+            <button
+              type="button"
+              onclick="quickFillOtp()"
+              class="px-2.5 py-1 bg-white hover:bg-amber-100/60 border border-amber-300 text-amber-800 text-xs font-semibold rounded-lg shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Tự động điền mã OTP này</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Nhập OTP & Đặt mật khẩu mới -->
+        <div id="forgotStep2" class="hidden space-y-3.5 pt-2 border-t border-slate-100">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="otpInput" class="text-xs font-semibold text-slate-700">Mã xác thực OTP (6 chữ số):</label>
+              <span class="text-[11px] font-mono text-amber-600 font-semibold" id="otpTimerDisplay">Hiệu lực: 05:00</span>
+            </div>
+            <input
+              type="text"
+              id="otpInput"
+              maxlength="6"
+              autocomplete="one-time-code"
+              inputmode="numeric"
+              pattern="[0-9]{6}"
+              placeholder="Nhập mã 6 chữ số..."
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-center font-mono tracking-widest font-bold text-blue-700 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15 transition"
+            />
+          </div>
+
+          <div>
+            <label for="newPassword" class="block text-xs font-semibold text-slate-700 mb-1.5">Mật khẩu mới:</label>
+            <input
+              type="password"
+              id="newPassword"
+              autocomplete="new-password"
+              placeholder="Tối thiểu 6 ký tự..."
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15 transition"
+            />
+          </div>
+
+          <div>
+            <label for="confirmNewPassword" class="block text-xs font-semibold text-slate-700 mb-1.5">Xác nhận mật khẩu mới:</label>
+            <input
+              type="password"
+              id="confirmNewPassword"
+              autocomplete="new-password"
+              placeholder="Nhập lại mật khẩu mới..."
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15 transition"
+            />
+          </div>
+
+          <button
+            type="button"
+            onclick="handleResetPassword()"
+            class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>Xác nhận đặt lại mật khẩu</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-[#E5E7EB] py-4 text-xs text-[#6B7280]">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left">
+      <div>
+        <strong class="text-slate-800">Trường Cao Đẳng Công Nghiệp Huế (HueIC)</strong> • 70 Nguyễn Huệ, TP. Huế • (0234) 3822 559
+      </div>
+      <div class="flex items-center gap-4 justify-center">
+        <button
+          type="button"
+          onclick="openOrgModal()"
+          class="text-[#1976D2] hover:text-[#1565C0] hover:underline inline-flex items-center gap-1 font-semibold cursor-pointer"
+        >
+          <i data-lucide="network" class="w-3.5 h-3.5"></i>
+          Sơ đồ cơ cấu tổ chức HueIC
+        </button>
+        <span class="text-slate-300 hidden sm:inline">|</span>
+        <span>Bản quyền © 2026 Edu.One S-Edu System</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal Cơ cấu tổ chức Trường Cao đẳng Công nghiệp Huế -->
+  <div
+    id="orgModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="orgModalTitle"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
+    onclick="handleOrgBackdropClick(event)"
+  >
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full my-auto overflow-hidden transition-all transform flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="p-5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3.5">
+          <img src="assets/hueic_logo.png" alt="HueIC Logo" class="w-11 h-11 object-contain rounded-lg bg-white p-1 shadow-xs" />
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-500/20 text-blue-200 text-[10px] font-semibold border border-blue-400/30 uppercase tracking-wider mb-0.5">
+              Bộ Công Thương • Est. 1899
+            </div>
+            <h3 id="orgModalTitle" class="text-base sm:text-lg font-bold text-white tracking-tight">Cơ cấu Tổ chức Trường Cao Đẳng Công Nghiệp Huế</h3>
+            <p class="text-xs text-blue-200/80">70 Nguyễn Huệ, TP. Huế • Hotline: (0234) 3822 559 • hueic.edu.vn</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="closeOrgModal()"
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-blue-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+          title="Đóng cửa sổ"
+        >
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 sm:p-6 overflow-y-auto custom-scroll space-y-5 bg-slate-50/50">
+        
+        <!-- 1. KHỐI LÃNH ĐẠO & HỘI ĐỒNG TRƯỜNG -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-3.5">
+          <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+            <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#1976D2]"></span>
+              Khối Lãnh đạo Trường & Hội đồng Trường
+            </h4>
+            <span class="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+              Bộ máy Điều hành
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="p-3 rounded-lg border border-indigo-100 bg-indigo-50/50 space-y-1">
+              <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wide block">Chủ tịch Hội đồng trường</span>
+              <div class="font-bold text-xs text-slate-900">ThS. Lê Văn Luận</div>
+              <p class="text-[11px] text-slate-600">Chủ tịch HĐT, phụ trách đào tạo, QLSV & HTQT</p>
+            </div>
+            <div class="p-3 rounded-lg border border-blue-100 bg-blue-50/50 space-y-1">
+              <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wide block">Quyền Hiệu trưởng</span>
+              <div class="font-bold text-xs text-slate-900">ThS. Trần Hữu Châu Giang</div>
+              <p class="text-[11px] text-slate-600">Phụ trách chung toàn diện, chiến lược & quy hoạch</p>
+            </div>
+            <div class="p-3 rounded-lg border border-emerald-100 bg-emerald-50/50 space-y-1">
+              <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wide block">Phó Hiệu trưởng</span>
+              <div class="font-bold text-xs text-slate-900">ThS. Lê Văn Luận</div>
+              <p class="text-[11px] text-slate-600">Chủ tịch HĐT, phụ trách đào tạo & công tác HSSV</p>
+            </div>
+            <div class="p-3 rounded-lg border border-amber-100 bg-amber-50/50 space-y-1">
+              <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wide block">Phó Hiệu trưởng</span>
+              <div class="font-bold text-xs text-slate-900">ThS. Hoàng Minh Tuấn</div>
+              <p class="text-[11px] text-slate-600">Phụ trách quản trị - đầu tư, cơ sở vật chất & NCKH</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. KHỐI CÁC KHOA CHUYÊN MÔN ĐÀO TẠO (5 KHOA) -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-3.5">
+          <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+            <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+              Các Khoa Chuyên Môn Đào Tạo (05 Khoa)
+            </h4>
+            <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              Quy mô 1.490+ Sinh viên
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2 hover:bg-white hover:border-blue-300 transition">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">CNTT-KTS</span>
+                <span class="text-[10px] text-slate-500 font-medium">480 SV • 32 GV</span>
+              </div>
+              <h5 class="text-xs font-bold text-slate-900">Khoa Công nghệ Thông tin – Kinh tế số</h5>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                CNTT, Kỹ thuật Phần mềm, Mạng máy tính & ATTT, Thương mại điện tử, Marketing số.
+              </p>
+            </div>
+
+            <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2 hover:bg-white hover:border-emerald-300 transition">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">CK-OTO</span>
+                <span class="text-[10px] text-slate-500 font-medium">420 SV • 30 GV</span>
+              </div>
+              <h5 class="text-xs font-bold text-slate-900">Khoa Cơ khí – Ô tô</h5>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Công nghệ Kỹ thuật Ô tô, Cắt gọt kim loại CNC, Cơ điện tử, Công nghệ Hàn quốc tế.
+              </p>
+            </div>
+
+            <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2 hover:bg-white hover:border-amber-300 transition">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">D-DT</span>
+                <span class="text-[10px] text-slate-500 font-medium">380 SV • 27 GV</span>
+              </div>
+              <h5 class="text-xs font-bold text-slate-900">Khoa Điện – Điện tử</h5>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Điện công nghiệp (chuẩn KOSEN Nhật Bản), Kỹ thuật Điều khiển & Tự động hóa, Điện tử IoT.
+              </p>
+            </div>
+
+            <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2 hover:bg-white hover:border-cyan-300 transition">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800">NL</span>
+                <span class="text-[10px] text-slate-500 font-medium">210 SV • 18 GV</span>
+              </div>
+              <h5 class="text-xs font-bold text-slate-900">Khoa Nhiệt lạnh</h5>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Kỹ thuật Máy lạnh và Điều hòa không khí, Cơ điện lạnh công nghiệp.
+              </p>
+            </div>
+
+            <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2 hover:bg-white hover:border-purple-300 transition md:col-span-2 lg:col-span-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">KHCB</span>
+                <span class="text-[10px] text-slate-500 font-medium">Bộ môn đại cương • 24 GV</span>
+              </div>
+              <h5 class="text-xs font-bold text-slate-900">Khoa Khoa học cơ bản</h5>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Bộ môn Toán - Tin học cơ sở, Ngoại ngữ (Tiếng Anh - Tiếng Nhật), Lý luận chính trị, Giáo dục thể chất & GDQP-AN.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. KHỐI CÁC PHÒNG CHỨC NĂNG (3 PHÒNG) -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-3.5">
+          <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+            <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
+              Các Phòng Chức Năng (03 Phòng)
+            </h4>
+            <span class="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+              Khối Tham mưu
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <strong class="text-xs text-slate-900 font-bold">Phòng Đào tạo</strong>
+                <span class="text-[10px] text-slate-500 font-mono">0234.3834.701</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Quản lý chương trình, kế hoạch đào tạo, công tác tuyển sinh, thi và cấp phát văn bằng.
+              </p>
+            </div>
+
+            <div class="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <strong class="text-xs text-slate-900 font-bold">Phòng Hành chính – Tổng hợp</strong>
+                <span class="text-[10px] text-slate-500 font-mono">0234.3822.559</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Tổ chức cán bộ, nhân sự, chế độ chính sách, văn thư lưu trữ, thi đua và pháp chế.
+              </p>
+            </div>
+
+            <div class="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <strong class="text-xs text-slate-900 font-bold">Phòng Quản trị – Đầu tư</strong>
+                <span class="text-[10px] text-slate-500 font-mono">0234.3838.123</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Quản lý cơ sở vật chất, xưởng máy thực hành, giảng đường và các dự án đầu tư phát triển.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. KHỐI TRUNG TÂM, BAN TRỰC THUỘC & ĐOÀN THỂ -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-2.5">
+            <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+              Trung tâm & Ban Chuyên trách
+            </h4>
+            <ul class="text-xs text-slate-600 space-y-2">
+              <li class="flex items-start gap-2">
+                <strong class="text-slate-800 shrink-0">• TT Tuyển sinh & CTSV:</strong>
+                <span>Tư vấn hướng nghiệp, việc làm, học bổng & KTX.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <strong class="text-slate-800 shrink-0">• Trung tâm Thư viện:</strong>
+                <span>Thư viện hiện đại và kho học liệu điện tử.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <strong class="text-slate-800 shrink-0">• Ban Chuyển đổi số:</strong>
+                <span>Quản trị hạ tầng số và hệ thống SchoolPulse.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-2.5">
+            <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-rose-600"></span>
+              Tổ chức Chính trị – Xã hội & Đoàn thể
+            </h4>
+            <ul class="text-xs text-slate-600 space-y-2">
+              <li class="flex items-start gap-2">
+                <strong class="text-slate-800 shrink-0">• Đảng bộ Trường:</strong>
+                <span>Lãnh đạo toàn diện mọi mặt hoạt động nhà trường.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <strong class="text-slate-800 shrink-0">• Công đoàn Cơ sở:</strong>
+                <span>Chăm lo quyền lợi, đời sống đội ngũ CB-GV-NV.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <strong class="text-slate-800 shrink-0">• Đoàn TN – Hội SV:</strong>
+                <span>Phong trào thanh niên, rèn luyện kỹ năng sinh viên.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
+        <a
+          href="https://hueic.edu.vn"
+          target="_blank"
+          rel="noreferrer"
+          class="text-xs font-semibold text-[#1976D2] hover:underline flex items-center gap-1"
+        >
+          <span>Xem chi tiết trên website chính thức hueic.edu.vn</span>
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
+        <button
+          type="button"
+          onclick="closeOrgModal()"
+          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition cursor-pointer"
+        >
+          Đóng
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('load', () => {
+      document.body.classList.add('page-ready');
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+      refreshCaptcha();
+    });
+
+    // Quản lý Modal Cơ cấu tổ chức HueIC
+    function openOrgModal() {
+      const modal = document.getElementById('orgModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function closeOrgModal() {
+      const modal = document.getElementById('orgModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function handleOrgBackdropClick(e) {
+      if (e.target && e.target.id === 'orgModal') {
+        closeOrgModal();
+      }
+    }
+
+    // Thêm đóng modal bằng phím Escape
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        const modal = document.getElementById('forgotPasswordModal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closeForgotPasswordModal();
+        }
+        const orgModal = document.getElementById('orgModal');
+        if (orgModal && !orgModal.classList.contains('hidden')) {
+          closeOrgModal();
+        }
+      }
+    });
+
+    const toggleBtn = document.getElementById('togglePwdBtn');
+    const pwdInput = document.getElementById('password');
+    toggleBtn.addEventListener('click', () => {
+      const isPassword = pwdInput.type === 'password';
+      pwdInput.type = isPassword ? 'text' : 'password';
+      toggleBtn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+      toggleBtn.setAttribute('aria-label', isPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+      toggleBtn.innerHTML = isPassword
+        ? '<i data-lucide="eye-off" class="w-4 h-4"></i>'
+        : '<i data-lucide="eye" class="w-4 h-4"></i>';
+      if (window.lucide) lucide.createIcons();
+    });
+
+    // ==========================================
+    // CAPTCHA BẢO VỆ XÁC THỰC (Theo ảnh mẫu)
+    // ==========================================
+    let currentCaptcha = '';
+
+    function generateCaptchaCode(len = 4) {
+      const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+      let str = '';
+      for (let i = 0; i < len; i++) {
+        str += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return str;
+    }
+
+    function refreshCaptcha() {
+      const canvas = document.getElementById('captchaCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      currentCaptcha = generateCaptchaCode(4);
+
+      // Nền trắng sạch
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, w, h);
+
+      // Các vệt chấm/gạch ngắn nhiễu màu xanh giống hệt ảnh đính kèm
+      for (let i = 0; i < 45; i++) {
+        ctx.strokeStyle = ['#1D4ED8', '#2563EB', '#3B82F6', '#60A5FA', '#1E40AF'][Math.floor(Math.random() * 5)];
+        ctx.lineWidth = 1;
+        const nx = Math.random() * w;
+        const ny = Math.random() * h;
+        ctx.beginPath();
+        ctx.moveTo(nx, ny);
+        ctx.lineTo(nx + (Math.random() * 2 - 1), ny + (Math.random() * 4 + 2));
+        ctx.stroke();
+      }
+
+      // Vẽ 4 ký tự biến dạng (nghiêng nhẹ, font đậm kiểu serif)
+      const fonts = ['bold 22px Georgia, serif', 'bold 22px "Times New Roman", serif', 'bold 22px Courier, monospace'];
+      const colors = ['#1E3A8A', '#1D4ED8', '#2563EB', '#312E81', '#1E40AF'];
+      const step = (w - 16) / 4;
+
+      for (let i = 0; i < 4; i++) {
+        ctx.save();
+        const char = currentCaptcha[i];
+        const x = 12 + i * step + step * 0.35;
+        const y = h / 2 + (Math.random() * 4 - 2);
+        const rot = (Math.random() - 0.5) * 0.35;
+
+        ctx.translate(x, y);
+        ctx.rotate(rot);
+        ctx.font = fonts[Math.floor(Math.random() * fonts.length)];
+        ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
+      }
+
+      // Các đường gạch ngang/chéo qua chữ giống như mẫu CAPTCHA
+      for (let i = 0; i < 2; i++) {
+        ctx.strokeStyle = '#2563EB';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * 15, Math.random() * h);
+        ctx.lineTo(w - Math.random() * 15, Math.random() * h);
+        ctx.stroke();
+      }
+    }
+
+    // ==========================================
+    // QUÊN MẬT KHẨU (Gửi mã OTP về SĐT hoặc Gmail)
+    // ==========================================
+    let generatedOtp = '';
+    let otpCountdownTimer = null;
+    let currentOtpTarget = '';
+
+    function openForgotPasswordModal() {
+      const modal = document.getElementById('forgotPasswordModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+
+      clearForgotAlert();
+      document.getElementById('forgotStep2').classList.add('hidden');
+      document.getElementById('simulatedMessageCard').classList.add('hidden');
+      const currentVal = (document.getElementById('identifier').value || '').trim();
+      if (currentVal) {
+        document.getElementById('recoveryTarget').value = currentVal;
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeForgotPasswordModal() {
+      const modal = document.getElementById('forgotPasswordModal');
+      if (modal) modal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+
+      if (otpCountdownTimer) {
+        clearInterval(otpCountdownTimer);
+        otpCountdownTimer = null;
+      }
+    }
+
+    function toggleRecoveryMethod(method) {
+      const lblPhone = document.getElementById('labelMethodPhone');
+      const lblEmail = document.getElementById('labelMethodEmail');
+      const lblInput = document.getElementById('lblRecoveryInput');
+      const input = document.getElementById('recoveryTarget');
+      const iconSpan = document.getElementById('iconRecoveryTarget');
+
+      if (method === 'phone') {
+        lblPhone.className = 'flex items-center gap-2.5 p-2.5 rounded-xl border border-blue-500 bg-blue-50/60 cursor-pointer transition select-none';
+        lblEmail.className = 'flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition select-none';
+        lblInput.textContent = 'Số điện thoại đã đăng ký:';
+        input.placeholder = 'Nhập số điện thoại (VD: 0903000001, 0902000001...)';
+        iconSpan.innerHTML = '<i data-lucide="phone" class="w-4 h-4"></i>';
+      } else {
+        lblEmail.className = 'flex items-center gap-2.5 p-2.5 rounded-xl border border-blue-500 bg-blue-50/60 cursor-pointer transition select-none';
+        lblPhone.className = 'flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition select-none';
+        lblInput.textContent = 'Gmail / Email đã đăng ký:';
+        input.placeholder = 'Nhập địa chỉ Gmail (VD: an.nv@hueic.edu.vn, bgh@hueic.edu.vn...)';
+        iconSpan.innerHTML = '<i data-lucide="mail" class="w-4 h-4"></i>';
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function setQuickRecovery(val) {
+      document.getElementById('recoveryTarget').value = val;
+      const isEmail = val.includes('@');
+      const radios = document.getElementsByName('recoveryMethod');
+      for (const r of radios) {
+        if (isEmail && r.value === 'email') {
+          r.checked = true;
+          toggleRecoveryMethod('email');
+        } else if (!isEmail && r.value === 'phone') {
+          r.checked = true;
+          toggleRecoveryMethod('phone');
+        }
+      }
+    }
+
+    function showForgotAlert(msg, type = 'error') {
+      const alertBox = document.getElementById('forgotAlert');
+      if (!alertBox) return;
+      alertBox.className = type === 'success' 
+        ? 'p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs font-medium'
+        : 'p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs font-medium';
+      alertBox.innerHTML = msg;
+      alertBox.classList.remove('hidden');
+    }
+
+    function clearForgotAlert() {
+      const alertBox = document.getElementById('forgotAlert');
+      if (alertBox) {
+        alertBox.textContent = '';
+        alertBox.classList.add('hidden');
+      }
+    }
+
+    function handleSendOtp() {
+      clearForgotAlert();
+      const target = (document.getElementById('recoveryTarget').value || '').trim();
+      if (!target) {
+        showForgotAlert('Vui lòng nhập Số điện thoại hoặc Gmail để nhận mã OTP!');
+        document.getElementById('recoveryTarget').focus();
+        return;
+      }
+
+      const methodEl = document.querySelector('input[name="recoveryMethod"]:checked');
+      const method = methodEl ? methodEl.value : 'phone';
+
+      currentOtpTarget = target;
+      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Hiển thị khung mô phỏng tin nhắn SMS hoặc Gmail nhận được
+      const simCard = document.getElementById('simulatedMessageCard');
+      const simHeader = document.getElementById('simulatedMsgHeader');
+      const simBody = document.getElementById('simulatedMsgBody');
+
+      if (method === 'phone') {
+        simHeader.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span><span>💬 Tin nhắn SMS mới từ HUEIC-EDU</span>';
+        simBody.innerHTML = `[SMS HueIC]: Mã xác thực đặt lại mật khẩu của số điện thoại <strong>${target}</strong> là: <strong class="text-base text-blue-700 font-bold tracking-wider">${generatedOtp}</strong>. Mã có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.`;
+      } else {
+        simHeader.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span><span>✉️ Hộp thư Gmail mới từ no-reply@hueic.edu.vn</span>';
+        simBody.innerHTML = `[Gmail HueIC]: Thư xác thực gửi tới <strong>${target}</strong>. Mã OTP đặt lại mật khẩu tài khoản là: <strong class="text-base text-indigo-700 font-bold tracking-wider">${generatedOtp}</strong> (Hiệu lực 5 phút).`;
+      }
+
+      simCard.classList.remove('hidden');
+
+      // Khởi động Step 2 & Bộ đếm thời gian
+      document.getElementById('forgotStep2').classList.remove('hidden');
+      document.getElementById('otpInput').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmNewPassword').value = '';
+
+      startOtpCountdown(300); // 5 phút
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function quickFillOtp() {
+      if (generatedOtp) {
+        document.getElementById('otpInput').value = generatedOtp;
+        document.getElementById('newPassword').focus();
+      }
+    }
+
+    function startOtpCountdown(seconds) {
+      if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+
+      let timeLeft = seconds;
+      const display = document.getElementById('otpTimerDisplay');
+
+      const update = () => {
+        if (timeLeft < 0) return;
+
+        if (timeLeft === 0) {
+          clearInterval(otpCountdownTimer);
+          otpCountdownTimer = null;
+          generatedOtp = '';
+          display.textContent = 'Mã OTP đã hết hạn';
+          showForgotAlert(
+            'Mã OTP đã hết hiệu lực. Vui lòng nhấn gửi lại mã mới!',
+            'error'
+          );
+          return;
+        }
+
+        const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const secs = (timeLeft % 60).toString().padStart(2, '0');
+
+        display.textContent = `Hiệu lực: ${mins}:${secs}`;
+        timeLeft--;
+      };
+
+      update();
+      otpCountdownTimer = setInterval(update, 1000);
+    }
+
+    function handleResetPassword() {
+      clearForgotAlert();
+      const enteredOtp = (document.getElementById('otpInput').value || '').trim();
+      const newPwd = (document.getElementById('newPassword').value || '').trim();
+      const confirmPwd = (document.getElementById('confirmNewPassword').value || '').trim();
+
+      if (!enteredOtp) {
+        showForgotAlert('Vui lòng nhập mã xác thực OTP 6 chữ số!');
+        document.getElementById('otpInput').focus();
+        return;
+      }
+      if (enteredOtp !== generatedOtp) {
+        showForgotAlert('Mã OTP không chính xác hoặc đã hết hạn! Vui lòng kiểm tra lại.');
+        document.getElementById('otpInput').focus();
+        return;
+      }
+      if (!newPwd || newPwd.length < 6) {
+        showForgotAlert('Mật khẩu mới phải có độ dài tối thiểu từ 6 ký tự trở lên!');
+        document.getElementById('newPassword').focus();
+        return;
+      }
+      if (newPwd !== confirmPwd) {
+        showForgotAlert('Mật khẩu xác nhận không khớp! Vui lòng nhập lại.');
+        document.getElementById('confirmNewPassword').focus();
+        return;
+      }
+
+      // Lưu mật khẩu mới vào localStorage
+      try {
+        const customPwds = JSON.parse(localStorage.getItem('sll_custom_passwords') || '{}');
+        if (currentOtpTarget) {
+          customPwds[currentOtpTarget.toLowerCase()] = newPwd;
+          const cleanTarget = currentOtpTarget.replace(/\D/g, '');
+          if (cleanTarget.length >= 9) customPwds[cleanTarget] = newPwd;
+        }
+        localStorage.setItem('sll_custom_passwords', JSON.stringify(customPwds));
+      } catch (e) {}
+
+      showForgotAlert('🎉 Đặt lại mật khẩu thành công! Mật khẩu mới đã được cập nhật cho tài khoản của bạn.', 'success');
+
+      // Tự động điền mật khẩu mới vào ô đăng nhập
+      const pwdInput = document.getElementById('password');
+      if (pwdInput) pwdInput.value = newPwd;
+      if (currentOtpTarget) {
+        const idInput = document.getElementById('identifier');
+        if (idInput && !idInput.value) idInput.value = currentOtpTarget;
+      }
+
+      setTimeout(() => {
+        closeForgotPasswordModal();
+        const hint = document.getElementById('demoSelectedHint');
+        const hintText = document.getElementById('demoSelectedText');
+        if (hint && hintText) {
+          hintText.innerHTML = `Đã đổi mật khẩu thành công! Bạn có thể nhấn <strong>Đăng nhập hệ thống</strong> để vào cổng.`;
+          hint.classList.remove('hidden');
+        }
+      }, 1500);
+    }
+
+    let currentRecognizedStudent = null;
+
+    function safeRedirect(url) {
+      if (window.__DISABLE_REDIRECT__) {
+        window.__LAST_REDIRECT__ = url;
+        return;
+      }
+      window.location.href = url;
+    }
+
+    // Helper chuẩn hóa dữ liệu
+    function normalizePhone(value) {
+      return String(value || '').trim().replace(/\D/g, '');
+    }
+
+    function normalizeEmail(value) {
+      return String(value || '').trim().toLowerCase();
+    }
+
+    // Giới hạn số lần đăng nhập sai
+    let loginAttempts = Number(sessionStorage.getItem('hueic_login_attempts') || '0');
+
+    function registerLoginFailure() {
+      loginAttempts++;
+      sessionStorage.setItem('hueic_login_attempts', String(loginAttempts));
+      if (loginAttempts >= 5) {
+        showLoginError('Bạn đã nhập sai quá 5 lần. Hãy chờ 1 phút rồi thử lại.');
+      }
+    }
+
+    function resetLoginAttempts() {
+      loginAttempts = 0;
+      sessionStorage.removeItem('hueic_login_attempts');
+    }
+
+    function getStudentsDb() {
+      let db = null;
+      try {
+        const stored = localStorage.getItem('sll_local_db');
+        if (stored) db = JSON.parse(stored);
+      } catch (e) {}
+      if (!db || !Array.isArray(db.students)) {
+        db = window.INITIAL_DB || {};
+      }
+      return Array.isArray(db.students) ? db.students : [];
+    }
+
+    function showLoginError(msg) {
+      const errorBox = document.getElementById('loginError');
+      errorBox.textContent = msg;
+      errorBox.classList.remove('hidden');
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function clearLoginError() {
+      const errorBox = document.getElementById('loginError');
+      errorBox.textContent = '';
+      errorBox.classList.add('hidden');
+    }
+
+    // Nhận diện Mã sinh viên của con theo thời gian thực
+    function checkStudentRecognition(value) {
+      const badge = document.getElementById('childPreviewBadge');
+      if (!badge) return null;
+
+      const val = (value || '').trim();
+      if (!val) {
+        badge.classList.add('hidden');
+        currentRecognizedStudent = null;
+        const role = sessionStorage.getItem('hueic_role');
+        const hint = document.getElementById('demoSelectedHint');
+        const hintText = document.getElementById('demoSelectedText');
+        if (hint && hintText && role === 'STUDENT') {
+          hintText.innerHTML = `Đã chọn vai trò <strong>Sinh viên</strong>. Vui lòng nhập Mã sinh viên của bạn vào ô trên để đăng nhập!`;
+          hint.classList.remove('hidden');
+        }
+        return null;
+      }
+
+      const valUpper = val.toUpperCase();
+      const cleanDigits = normalizePhone(val);
+      const students = getStudentsDb();
+
+      // Tìm kiếm theo mã SV chính xác hoặc mã chứa ký tự, hoặc số điện thoại phụ huynh
+      const matched = students.find(s => {
+        if (!s) return false;
+        const code = String(s.student_code || '').trim().toUpperCase();
+        const idStr = String(s.id || '').trim();
+        const pPhone = normalizePhone(s.parent_phone);
+        return code === valUpper || (valUpper.length >= 7 && code.includes(valUpper)) || (cleanDigits.length >= 9 && pPhone.endsWith(cleanDigits));
+      });
+
+      if (matched) {
+        currentRecognizedStudent = matched;
+        document.getElementById('previewStudentCode').textContent = matched.student_code || 'HUEIC';
+        document.getElementById('previewStudentName').textContent = matched.full_name || '—';
+        document.getElementById('previewClassName').textContent = matched.class_name || 'CĐ K48';
+        document.getElementById('previewTeacherName').textContent = matched.teacher_name || 'ThS. Nguyễn Văn An';
+        document.getElementById('previewParentName').textContent = matched.parent_name || 'Phụ huynh sinh viên';
+        document.getElementById('previewParentPhone').textContent = matched.parent_phone ? `(${matched.parent_phone})` : '';
+
+        badge.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+
+        const role = sessionStorage.getItem('hueic_role');
+        const hint = document.getElementById('demoSelectedHint');
+        const hintText = document.getElementById('demoSelectedText');
+        if (hint && hintText && role === 'STUDENT') {
+          hintText.innerHTML = `Đã nhận diện sinh viên <strong>${matched.full_name}</strong> (${matched.student_code} • ${matched.class_name}). Nhấn <strong>Đăng nhập hệ thống</strong> để vào cổng!`;
+          hint.classList.remove('hidden');
+        }
+        return matched;
+      } else {
+        badge.classList.add('hidden');
+        currentRecognizedStudent = null;
+        return null;
+      }
+    }
+
+    // Gắn sự kiện realtime input
+    const identifierEl = document.getElementById('identifier');
+    if (identifierEl) {
+      identifierEl.addEventListener('input', function() {
+        clearLoginError();
+        checkStudentRecognition(this.value);
+      });
+    }
+
+    // Gắn sự kiện nút Đăng nhập Cổng Sinh viên trong Preview Badge
+    const btnQuickStudent = document.getElementById('btnQuickLoginStudent');
+    if (btnQuickStudent) {
+      btnQuickStudent.addEventListener('click', function() {
+        if (!currentRecognizedStudent) return;
+        const cap = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
+        if (!cap) {
+          showLoginError('Vui lòng nhập mã bảo vệ xác thực (CAPTCHA) trước khi vào cổng!');
+          document.getElementById('captchaInput').focus();
+          return;
+        }
+        if (cap !== currentCaptcha.toUpperCase()) {
+          showLoginError('Mã xác thực không chính xác! Vui lòng nhập lại.');
+          refreshCaptcha();
+          document.getElementById('captchaInput').value = '';
+          document.getElementById('captchaInput').focus();
+          return;
+        }
+        sessionStorage.setItem('hueic_role', 'STUDENT');
+        sessionStorage.setItem('hueic_student_code', currentRecognizedStudent.student_code);
+        sessionStorage.setItem('current_student_id', currentRecognizedStudent.id);
+        safeRedirect('hoc_sinh.html');
+      });
+    }
+
+    // Gắn sự kiện nút Đăng nhập Sổ liên lạc Phụ huynh trong Preview Badge
+    const btnQuickParent = document.getElementById('btnQuickLoginParent');
+    if (btnQuickParent) {
+      btnQuickParent.addEventListener('click', function() {
+        if (!currentRecognizedStudent) return;
+        const cap = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
+        if (!cap) {
+          showLoginError('Vui lòng nhập mã bảo vệ xác thực (CAPTCHA) trước khi vào cổng!');
+          document.getElementById('captchaInput').focus();
+          return;
+        }
+        if (cap !== currentCaptcha.toUpperCase()) {
+          showLoginError('Mã xác thực không chính xác! Vui lòng nhập lại.');
+          refreshCaptcha();
+          document.getElementById('captchaInput').value = '';
+          document.getElementById('captchaInput').focus();
+          return;
+        }
+        sessionStorage.setItem('hueic_role', 'PARENT');
+        sessionStorage.setItem('hueic_student_code', currentRecognizedStudent.student_code);
+        sessionStorage.setItem('current_student_id', currentRecognizedStudent.id);
+        sessionStorage.setItem('hueic_parent_name', currentRecognizedStudent.parent_name || 'Phụ huynh sinh viên');
+        sessionStorage.setItem('hueic_parent_phone', currentRecognizedStudent.parent_phone || '0903000001');
+        safeRedirect('phu_huynh.html');
+      });
+    }
+
+    function fillDemo(username, password, role, el) {
+      const idInput = document.getElementById('identifier');
+      idInput.value = username;
+      document.getElementById('password').value = password;
+      sessionStorage.setItem('hueic_role', role);
+      clearLoginError();
+
+      const capInput = document.getElementById('captchaInput');
+      if (capInput && currentCaptcha) capInput.value = currentCaptcha;
+
+      if (role === 'ADMIN') {
+        idInput.placeholder = 'Nhập email hoặc tài khoản BGH...';
+      } else if (role === 'TEACHER') {
+        idInput.placeholder = 'Nhập số điện thoại hoặc email giảng viên...';
+      } else if (role === 'PARENT') {
+        idInput.placeholder = 'Nhập Mã sinh viên của con (VD: HUEIC2601), SĐT...';
+      } else if (role === 'STUDENT') {
+        idInput.placeholder = 'Nhập Mã sinh viên của bạn (VD: HUEIC2601, HUEIC2615...)';
+      }
+
+      // Ẩn các khu vực chọn lớp con khi chọn Admin/Teacher
+      // studentArea removed
+      // parentArea removed
+      
+      
+
+      // Visual feedback highlight
+      document.querySelectorAll('.demo-role-btn').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-[#1976D2]', 'bg-[#EBF4FF]');
+      });
+      document.querySelectorAll('.student-sample-btn').forEach(b => {
+        b.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+      });
+      document.querySelectorAll('.parent-sample-btn').forEach(b => {
+        b.classList.remove('ring-2', 'ring-purple-500', 'bg-purple-100/60', 'bg-purple-50');
+      });
+      if (el) {
+        el.classList.add('ring-2', 'ring-[#1976D2]');
+      }
+
+      checkStudentRecognition(username);
+
+      const hint = document.getElementById('demoSelectedHint');
+      const hintText = document.getElementById('demoSelectedText');
+      if (hint && hintText) {
+        const roleLabels = {
+          'ADMIN': 'Quản trị viên & Ban Giám hiệu',
+          'TEACHER': 'Giảng viên & Cố vấn học tập',
+          'STUDENT': 'Sinh viên HueIC',
+          'PARENT': 'Phụ huynh học sinh'
+        };
+        hintText.innerHTML = `Đã chọn vai trò <strong>${roleLabels[role] || role}</strong>. Nhấn <strong>Đăng nhập hệ thống</strong> để vào cổng!`;
+        hint.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+        function selectTeacherRole(el) {
+      const targetEl = (el && el.nodeType) ? el : document.getElementById('roleBtnTeacher');
+
+      sessionStorage.setItem('hueic_role', 'TEACHER');
+      sessionStorage.removeItem('hueic_teacher_code');
+      sessionStorage.removeItem('hueic_teacher_id');
+
+      const idInput = document.getElementById('identifier');
+      idInput.value = '';
+      idInput.placeholder = 'Nhập Mã giảng viên riêng (VD: GV01, GV02, GV03...)';
+
+      document.getElementById('password').value = 'teacher123';
+      clearLoginError();
+
+      const capInput = document.getElementById('captchaInput');
+      if (capInput && currentCaptcha) capInput.value = currentCaptcha;
+
+      const badge = document.getElementById('childPreviewBadge');
+      if (badge) badge.classList.add('hidden');
+      currentRecognizedStudent = null;
+
+      document.querySelectorAll('.demo-role-btn').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-[#1976D2]', 'ring-[#16A34A]', 'bg-[#EBF4FF]', 'bg-[#F0FDF4]');
+      });
+      if (targetEl) {
+        targetEl.classList.add('ring-2', 'ring-[#16A34A]', 'bg-[#F0FDF4]');
+      }
+
+      const hint = document.getElementById('demoSelectedHint');
+      const hintText = document.getElementById('demoSelectedText');
+      if (hint && hintText) {
+        hintText.innerHTML = `Đã chọn vai trò <strong>Giảng viên</strong>. Vui lòng nhập <strong>Mã giảng viên riêng biệt</strong> (VD: GV01 - K48A, GV02 - K48B, GV03 - Điện CN...) để đăng nhập bảo mật!`;
+        hint.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      }
+
+      idInput.focus();
+    }
+
+    function selectStudentRole(el) {
+      const targetEl = (el && el.nodeType) ? el : (arguments[2] && arguments[2].nodeType ? arguments[2] : document.getElementById('roleBtnStudent'));
+
+      // 1. Lưu vai trò và xóa mã SV cũ trong session
+      sessionStorage.setItem('hueic_role', 'STUDENT');
+      sessionStorage.removeItem('hueic_student_code');
+      sessionStorage.removeItem('current_student_id');
+
+      // 2. TUYỆT ĐỐI KHÔNG tự động điền sẵn Mã sinh viên, đổi placeholder
+      const idInput = document.getElementById('identifier');
+      idInput.value = '';
+      idInput.placeholder = 'Nhập Mã sinh viên của bạn (VD: HUEIC2601, HUEIC2615...)';
+
+      // 3. Điền sẵn mật khẩu mẫu student123
+      document.getElementById('password').value = 'student123';
+      clearLoginError();
+
+      const capInput = document.getElementById('captchaInput');
+      if (capInput && currentCaptcha) capInput.value = currentCaptcha;
+
+      // 4. Ẩn badge nhận diện cũ và reset sinh viên nhận diện
+      const badge = document.getElementById('childPreviewBadge');
+      if (badge) badge.classList.add('hidden');
+      currentRecognizedStudent = null;
+
+      // 5. Hiển thị khu vực chọn lớp sinh viên và ẩn khu vực phụ huynh
+      // studentArea removed
+      // parentArea removed
+      
+      
+
+      // 6. Xóa highlight các nút mẫu khác
+      document.querySelectorAll('.demo-role-btn').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-[#1976D2]', 'bg-[#EBF4FF]');
+      });
+      document.querySelectorAll('.student-sample-btn').forEach(b => {
+        b.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+      });
+      document.querySelectorAll('.parent-sample-btn').forEach(b => {
+        b.classList.remove('ring-2', 'ring-purple-500', 'bg-purple-100/60', 'bg-purple-50');
+      });
+
+      // Highlight nút vai trò Sinh viên
+      if (targetEl) {
+        targetEl.classList.add('ring-2', 'ring-[#1976D2]');
+      }
+
+      // 7. Cập nhật dòng mô tả nhỏ dưới chữ Sinh viên thành: Yêu cầu nhập Mã SV
+      const descEl = document.getElementById('roleBtnStudentDesc');
+      if (descEl) descEl.textContent = 'Yêu cầu nhập Mã SV';
+
+      // 8. Hiển thị thông báo hướng dẫn rõ ràng
+      const hint = document.getElementById('demoSelectedHint');
+      const hintText = document.getElementById('demoSelectedText');
+      if (hint && hintText) {
+        hintText.innerHTML = `Đã chọn vai trò <strong>Sinh viên</strong>. Vui lòng nhập Mã sinh viên của bạn vào ô trên để đăng nhập!`;
+        hint.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      }
+
+      // 9. Đặt con trỏ chuột focus ngay vào ô nhập tài khoản
+      idInput.focus();
+    }
+
+    function selectParentRole(el) {
+      const targetEl = (el && el.nodeType) ? el : (arguments[2] && arguments[2].nodeType ? arguments[2] : document.getElementById('roleBtnParent'));
+
+      // 1. Lưu vai trò Phụ huynh và xóa session cũ
+      sessionStorage.setItem('hueic_role', 'PARENT');
+      sessionStorage.removeItem('hueic_student_code');
+      sessionStorage.removeItem('current_student_id');
+
+      // 2. Xóa ô nhập để phụ huynh chỉ cần nhập mã SV của con
+      const idInput = document.getElementById('identifier');
+      idInput.value = '';
+      idInput.placeholder = 'Nhập Mã sinh viên của con (VD: HUEIC2601, HUEIC2615...)';
+
+      // 3. Điền sẵn mật khẩu parent123 (không bắt phụ huynh phải nhớ mật khẩu phức tạp)
+      document.getElementById('password').value = 'parent123';
+      clearLoginError();
+
+      const capInput = document.getElementById('captchaInput');
+      if (capInput && currentCaptcha) capInput.value = currentCaptcha;
+
+      // 4. Ẩn badge nhận diện cũ
+      const badge = document.getElementById('childPreviewBadge');
+      if (badge) badge.classList.add('hidden');
+      currentRecognizedStudent = null;
+
+      // 5. Highlight nút Phụ huynh
+      document.querySelectorAll('.demo-role-btn').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-[#1976D2]', 'ring-[#7C3AED]', 'bg-[#EBF4FF]', 'bg-[#F5F3FF]');
+      });
+      if (targetEl) {
+        targetEl.classList.add('ring-2', 'ring-[#7C3AED]', 'bg-[#F5F3FF]');
+      }
+
+      // 6. Hiển thị thông báo hướng dẫn
+      const hint = document.getElementById('demoSelectedHint');
+      const hintText = document.getElementById('demoSelectedText');
+      if (hint && hintText) {
+        hintText.innerHTML = `Đã chọn vai trò <strong>Phụ huynh</strong>. Bạn chỉ cần nhập <strong>Mã sinh viên của con</strong> vào ô trên rồi nhấn <strong>Đăng nhập</strong>!`;
+        hint.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      }
+
+      // 7. Tự động focus vào ô nhập
+      idInput.focus();
+    }
+
+    function fillStudentSample(code, name, className, el) {
+      document.getElementById('identifier').value = code;
+      document.getElementById('password').value = 'student123';
+      sessionStorage.setItem('hueic_role', 'STUDENT');
+      sessionStorage.setItem('hueic_student_code', code);
+      clearLoginError();
+
+      const capInput = document.getElementById('captchaInput');
+      if (capInput && currentCaptcha) capInput.value = currentCaptcha;
+
+      // Highlight button Sinh viên
+      document.querySelectorAll('.demo-role-btn').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-[#1976D2]', 'bg-[#EBF4FF]');
+      });
+      const stRoleBtn = document.getElementById('roleBtnStudent');
+      if (stRoleBtn) stRoleBtn.classList.add('ring-2', 'ring-[#1976D2]');
+
+      // Highlight nút lớp mẫu
+      document.querySelectorAll('.student-sample-btn').forEach(b => {
+        b.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+      });
+      if (el) {
+        el.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+      }
+
+      checkStudentRecognition(code);
+
+      const hint = document.getElementById('demoSelectedHint');
+      const hintText = document.getElementById('demoSelectedText');
+      if (hint && hintText) {
+        hintText.innerHTML = `Đã chọn sinh viên <strong>${name}</strong> (${code} • ${className}). Nhấn <strong>Đăng nhập hệ thống</strong> để tiếp tục!`;
+        hint.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function fillParentSample(studentCode, studentName, parentName, className, parentPhone, el) {
+      document.getElementById('identifier').value = studentCode;
+      document.getElementById('password').value = 'parent123';
+      sessionStorage.setItem('hueic_role', 'PARENT');
+      sessionStorage.setItem('hueic_student_code', studentCode);
+      sessionStorage.setItem('hueic_parent_name', parentName);
+      sessionStorage.setItem('hueic_parent_phone', parentPhone);
+      clearLoginError();
+
+      const capInput = document.getElementById('captchaInput');
+      if (capInput && currentCaptcha) capInput.value = currentCaptcha;
+
+      // Highlight button Phụ huynh
+      document.querySelectorAll('.demo-role-btn').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-[#1976D2]', 'bg-[#EBF4FF]');
+      });
+      const prRoleBtn = document.getElementById('roleBtnParent');
+      if (prRoleBtn) prRoleBtn.classList.add('ring-2', 'ring-[#1976D2]');
+
+      // Highlight nút phụ huynh mẫu
+      document.querySelectorAll('.parent-sample-btn').forEach(b => {
+        b.classList.remove('ring-2', 'ring-purple-500', 'bg-purple-100/60');
+      });
+      if (el) {
+        el.classList.add('ring-2', 'ring-purple-500', 'bg-purple-100/60');
+      }
+
+      checkStudentRecognition(studentCode);
+
+      const hint = document.getElementById('demoSelectedHint');
+      const hintText = document.getElementById('demoSelectedText');
+      if (hint && hintText) {
+        hintText.innerHTML = `Đã chọn Phụ huynh <strong>${parentName}</strong> (Con: <strong>${studentName}</strong> - ${studentCode} • ${className}). Nhấn <strong>Đăng nhập hệ thống</strong> để vào Sổ liên lạc!`;
+        hint.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearLoginError();
+
+      if (loginAttempts >= 5) {
+        showLoginError('Bạn đã nhập sai quá 5 lần. Hãy chờ 1 phút rồi thử lại.');
+        return;
+      }
+
+      const idInput = document.getElementById('identifier');
+      const id = idInput.value.trim();
+      let pwd = document.getElementById('password').value.trim();
+      const demoPasswords = {
+        ADMIN: 'admin123',
+        TEACHER: 'teacher123',
+        STUDENT: 'student123',
+        PARENT: 'parent123'
+      };
+
+      const selectedRole = sessionStorage.getItem('hueic_role') || '';
+
+      const captcha = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
+      if (!captcha) {
+        showLoginError('Vui lòng nhập mã bảo vệ xác thực (CAPTCHA)!');
+        document.getElementById('captchaInput').focus();
+        return;
+      }
+
+      if (captcha !== currentCaptcha.toUpperCase()) {
+        showLoginError('Mã xác thực không chính xác!');
+        refreshCaptcha();
+        document.getElementById('captchaInput').value = '';
+        document.getElementById('captchaInput').focus();
+        return;
+      }
+
+      if (!id) {
+        showLoginError(
+          selectedRole === 'STUDENT'
+            ? 'Vui lòng nhập Mã sinh viên!'
+            : selectedRole === 'PARENT'
+              ? 'Vui lòng nhập Mã sinh viên của con!'
+              : 'Vui lòng nhập tài khoản!'
+        );
+        idInput.focus();
+        return;
+      }
+
+      // Tự động điền mật khẩu mẫu nếu là Phụ huynh đăng nhập nhanh
+      if (!pwd && (selectedRole === 'PARENT' || id.startsWith('0903'))) {
+        pwd = 'parent123';
+        document.getElementById('password').value = 'parent123';
+      }
+
+      if (!pwd) {
+        showLoginError('Vui lòng nhập mật khẩu!');
+        document.getElementById('password').focus();
+        return;
+      }
+
+      const idUpper = id.trim().toUpperCase();
+      const idLower = normalizeEmail(id);
+      const cleanDigits = normalizePhone(id);
+
+      let customPasswords = {};
+      try {
+        customPasswords = JSON.parse(localStorage.getItem('sll_custom_passwords') || '{}');
+      } catch (_) {}
+
+      const customPassword =
+        customPasswords[idLower] ||
+        customPasswords[idUpper] ||
+        (cleanDigits.length >= 9 ? customPasswords[cleanDigits] : null);
+
+      // Hàm cấp quyền và tạo token phiên đăng nhập
+      function issueSession(role) {
+        resetLoginAttempts();
+        const token = 'HUEIC_AUTH_' + Date.now() + '_' + Math.random().toString(36).substring(2, 12);
+        sessionStorage.setItem('hueic_role', role);
+        sessionStorage.setItem('hueic_auth_token', token);
+        sessionStorage.setItem('hueic_auth_time', new Date().toISOString());
+      }
+
+      // 1. Phân loại và xác thực Quản trị viên (Admin / Ban Giám hiệu)
+      const isAdminLogin =
+        selectedRole === 'ADMIN' ||
+        idLower.includes('bgh') ||
+        idLower.includes('admin') ||
+        id === '02343834701';
+
+      if (isAdminLogin) {
+        const expectedAdminPwd = customPassword || demoPasswords.ADMIN || 'admin123';
+        if (pwd !== expectedAdminPwd) {
+          registerLoginFailure();
+          showLoginError('Mật khẩu quản trị viên không chính xác!');
+          document.getElementById('password').focus();
+          return;
+        }
+        issueSession('ADMIN');
+        safeRedirect('quan_tri.html');
+        return;
+      }
+
+      // 2. Tra cứu Giảng viên
+      const dbUsers =
+        window.INITIAL_DB && Array.isArray(window.INITIAL_DB.users)
+          ? window.INITIAL_DB.users
+          : [];
+
+      const foundTeacher = dbUsers
+        .filter(user => user.role === 'TEACHER')
+        .find(user => {
+          const code = String(user.teacher_code || '').trim().toUpperCase();
+          const altCode = String(user.alt_code || '').trim().toUpperCase();
+          const phone = normalizePhone(user.phone);
+          const email = normalizeEmail(user.email);
+
+          return (
+            code === idUpper ||
+            altCode === idUpper ||
+            email === idLower ||
+            (cleanDigits.length >= 9 && phone.endsWith(cleanDigits))
+          );
+        });
+
+      if (selectedRole === 'TEACHER' || idUpper.startsWith('GV') || (foundTeacher && !selectedRole)) {
+        if (!foundTeacher) {
+          registerLoginFailure();
+          showLoginError(`Mã giảng viên "${id}" không tồn tại trong hệ thống!`);
+          idInput.focus();
+          return;
+        }
+
+        const expectedTeacherPwd = customPassword || demoPasswords.TEACHER || 'teacher123';
+        if (pwd !== expectedTeacherPwd) {
+          registerLoginFailure();
+          showLoginError('Mật khẩu giảng viên không chính xác!');
+          document.getElementById('password').focus();
+          return;
+        }
+
+        issueSession('TEACHER');
+        sessionStorage.setItem('hueic_teacher_code', foundTeacher.teacher_code);
+        sessionStorage.setItem('hueic_teacher_id', foundTeacher.id);
+        sessionStorage.setItem('hueic_teacher_name', foundTeacher.full_name);
+        sessionStorage.setItem('hueic_teacher_class_id', foundTeacher.class_id);
+        safeRedirect('giao_vien.html');
+        return;
+      }
+
+      // 3. Tra cứu Sinh viên & Phụ huynh
+      const students = getStudentsDb();
+      const foundStudent = students.find(student => {
+        const code = String(student.student_code || '').trim().toUpperCase();
+        const studentId = String(student.id || '').trim();
+        const parentPhone = normalizePhone(student.parent_phone);
+
+        return (
+          code === idUpper ||
+          studentId === id ||
+          (cleanDigits.length >= 9 && parentPhone.endsWith(cleanDigits))
+        );
+      });
+
+      // 4. Xác thực Phụ huynh
+      if (selectedRole === 'PARENT' || id.startsWith('0903')) {
+        if (!foundStudent) {
+          registerLoginFailure();
+          showLoginError('Mã sinh viên của con hoặc số điện thoại không tồn tại!');
+          idInput.focus();
+          return;
+        }
+
+        const expectedParentPwd = customPassword || demoPasswords.PARENT || 'parent123';
+        if (pwd !== expectedParentPwd) {
+          registerLoginFailure();
+          showLoginError('Mật khẩu phụ huynh không chính xác!');
+          document.getElementById('password').focus();
+          return;
+        }
+
+        issueSession('PARENT');
+        sessionStorage.setItem('hueic_student_code', foundStudent.student_code);
+        sessionStorage.setItem('current_student_id', foundStudent.id);
+        sessionStorage.setItem('hueic_parent_name', foundStudent.parent_name || 'Phụ huynh sinh viên');
+        sessionStorage.setItem('hueic_parent_phone', foundStudent.parent_phone || '');
+        safeRedirect('phu_huynh.html');
+        return;
+      }
+
+      // 5. Xác thực Sinh viên
+      if (selectedRole === 'STUDENT' || idUpper.startsWith('HUEIC') || foundStudent) {
+        if (!foundStudent) {
+          registerLoginFailure();
+          showLoginError(`Mã sinh viên "${id}" không tồn tại trong hệ thống!`);
+          idInput.focus();
+          return;
+        }
+
+        const expectedStudentPwd = customPassword || demoPasswords.STUDENT || 'student123';
+        if (pwd !== expectedStudentPwd) {
+          registerLoginFailure();
+          showLoginError('Mật khẩu sinh viên không chính xác!');
+          document.getElementById('password').focus();
+          return;
+        }
+
+        issueSession('STUDENT');
+        sessionStorage.setItem('hueic_student_code', foundStudent.student_code);
+        sessionStorage.setItem('current_student_id', foundStudent.id);
+        safeRedirect('hoc_sinh.html');
+        return;
+      }
+
+      registerLoginFailure();
+      showLoginError(`Tài khoản "${id}" không tồn tại!`);
+      idInput.focus();
+    });
+  </script>
+
+  <!-- ============================================================
+       HIỆU ỨNG CHIỀU SÂU & ÁNH SÁNG (thêm mới, không đổi logic đăng nhập)
+       Gỡ bỏ: xóa từ dòng này đến hết thẻ </script> bên dưới.
+       ============================================================ -->
+  <style id="rl-effects-css">
+    /* ---------- 1. Nền ánh sáng trôi chậm (màu lấy từ dải brand phía trên) ---------- */
+    .rl-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .rl-blob {
+      position: absolute;
+      width: 46vmax;
+      height: 46vmax;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: .30;
+      translate: var(--px, 0px) var(--py, 0px);
+      transition: translate .7s cubic-bezier(.22, 1, .36, 1);
+      animation: rlDrift 30s ease-in-out infinite alternate;
+    }
+    .rl-blob.b1 { background: #2BB8A8; left: -12vmax; top: -12vmax; }
+    .rl-blob.b2 { background: #5C6FB5; right: -14vmax; top: 16vh; animation-duration: 36s; animation-delay: -9s; }
+    .rl-blob.b3 { background: #1976D2; left: 24vw; bottom: -24vmax; animation-duration: 42s; animation-delay: -17s; }
+    @keyframes rlDrift {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to   { transform: translate3d(6vmax, -4vmax, 0) scale(1.12); }
+    }
+
+    /* ---------- 2. Thẻ đăng nhập: kính mờ + bóng nhiều lớp + nghiêng 3D ---------- */
+    .login-card.rl-card {
+      position: relative;
+      background: rgba(255, 255, 255, .86) !important;
+      border-color: rgba(255, 255, 255, .75) !important;
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      backdrop-filter: blur(18px) saturate(140%);
+      /* Bóng đổ nhiều lớp, lệch ngược hướng nghiêng (--sx, --sy từ -1 đến 1) */
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .95),
+        calc(var(--sx, 0) * .5px)  calc(var(--sy, 0) * .5px  + 1px)  2px            rgba(16, 24, 40, .05),
+        calc(var(--sx, 0) * 1.5px) calc(var(--sy, 0) * 1.5px + 6px)  12px -2px      rgba(16, 24, 40, .06),
+        calc(var(--sx, 0) * 4px)   calc(var(--sy, 0) * 4px   + 18px) 32px -8px      rgba(25, 118, 210, .14),
+        calc(var(--sx, 0) * 8px)   calc(var(--sy, 0) * 8px   + 38px) 64px -16px     rgba(25, 118, 210, .16) !important;
+      transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+      transition: transform .6s cubic-bezier(.22, 1, .36, 1), box-shadow .6s cubic-bezier(.22, 1, .36, 1), opacity .4s ease;
+    }
+    .login-card.rl-card.rl-ready { animation: none; }          /* bỏ animation vào trang sau khi chạy xong để nghiêng 3D hoạt động */
+    .login-card.rl-card.rl-tracking { transition: transform .12s linear, box-shadow .12s linear, opacity .4s ease; }
+
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .login-card.rl-card { background: rgba(255, 255, 255, .97) !important; }
+    }
+
+    /* Viền sáng lên theo vị trí con trỏ, như ánh sáng chiếu vào cạnh kính */
+    .rl-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      padding: 1px;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(260px circle at var(--gx, 50%) var(--gy, 0%), rgba(25, 118, 210, .65), rgba(25, 118, 210, 0) 70%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+      opacity: var(--go, 0);
+      transition: opacity .4s ease;
+    }
+    /* Vệt sáng mờ phản chiếu bên trong thẻ */
+    .rl-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(420px circle at var(--gx, 50%) var(--gy, 0%), rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 60%);
+      opacity: var(--go, 0);
+      transition: opacity .4s ease;
+    }
+    /* Báo lỗi: viền đỏ bật lên rồi tắt */
+    .rl-card.rl-error::before {
+      background: rgba(220, 38, 38, .6);
+      opacity: 1;
+    }
+    /* Đăng nhập thành công: thẻ nhẹ nhàng bay lên rồi chuyển trang */
+    .login-card.rl-card.rl-leaving {
+      transform: perspective(1000px) translateY(-14px) scale(.97) !important;
+      opacity: 0;
+      transition: transform .42s cubic-bezier(.4, 0, .2, 1), opacity .42s ease !important;
+    }
+
+    /* ---------- 3. Nút bấm: nổi khối + gợn sóng tại điểm chạm ---------- */
+    #loginForm button[type="submit"],
+    .demo-role-btn {
+      position: relative;
+      overflow: hidden;
+    }
+    #loginForm button[type="submit"] {
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .28),
+        0 1px 2px rgba(25, 118, 210, .30),
+        0 8px 16px -6px rgba(25, 118, 210, .50) !important;
+    }
+    #loginForm button[type="submit"]:active {
+      box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, .18),
+        0 1px 1px rgba(25, 118, 210, .25) !important;
+    }
+    .rl-ripple {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      background: var(--rl-ripple, rgba(25, 118, 210, .18));
+      transform: scale(0);
+      animation: rlRipple .6s cubic-bezier(.22, 1, .36, 1) forwards;
+    }
+    @keyframes rlRipple {
+      to { transform: scale(1); opacity: 0; }
+    }
+    .rl-spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, .45);
+      border-top-color: #fff;
+      animation: rlSpin .7s linear infinite;
+    }
+    @keyframes rlSpin { to { transform: rotate(360deg); } }
+
+    /* ---------- 4. Tôn trọng người dùng giảm chuyển động ---------- */
+    @media (prefers-reduced-motion: reduce) {
+      .rl-blob { animation: none; transition: none; }
+      .login-card.rl-card { transition: none; transform: none; }
+      .rl-ripple, .rl-spinner { animation: none; }
+    }
+  </style>
+
+  <script id="rl-effects-js">
+    (function () {
+      'use strict';
+
+      var card = document.querySelector('.login-card');
+      if (!card) return;
+
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+
+      card.classList.add('rl-card');
+
+      /* --- Nền ánh sáng --- */
+      var backdrop = document.createElement('div');
+      backdrop.className = 'rl-backdrop';
+      backdrop.setAttribute('aria-hidden', 'true');
+      ['b1', 'b2', 'b3'].forEach(function (c) {
+        var b = document.createElement('div');
+        b.className = 'rl-blob ' + c;
+        backdrop.appendChild(b);
+      });
+      document.body.appendChild(backdrop);
+
+      /* --- Gỡ animation vào trang để transform 3D hoạt động --- */
+      var markReady = function () { card.classList.add('rl-ready'); };
+      card.addEventListener('animationend', function onEnd(e) {
+        if (e.target !== card) return;
+        markReady();
+        card.removeEventListener('animationend', onEnd);
+      });
+      setTimeout(markReady, 900);
+
+      /* --- Nghiêng 3D + ánh sáng theo con trỏ (chỉ trên thiết bị có chuột) --- */
+      if (finePointer && !reduce) {
+        var MAX_TILT = 5;          // độ nghiêng tối đa (độ)
+        var nx = 0, ny = 0;        // vị trí con trỏ so với tâm thẻ, từ -1 đến 1
+        var gx = 0, gy = 0;        // vị trí ánh sáng trong thẻ (px)
+        var lock = false;          // khóa nghiêng khi đang gõ để chữ luôn nét
+        var raf = 0, idle = 0;
+
+        var render = function () {
+          raf = 0;
+          var k = lock ? 0 : 1;
+          card.style.setProperty('--ry', (nx * MAX_TILT * k).toFixed(2) + 'deg');
+          card.style.setProperty('--rx', (-ny * MAX_TILT * k).toFixed(2) + 'deg');
+          card.style.setProperty('--sx', (-nx * k).toFixed(3));
+          card.style.setProperty('--sy', (-ny * k).toFixed(3));
+          card.style.setProperty('--gx', gx.toFixed(0) + 'px');
+          card.style.setProperty('--gy', gy.toFixed(0) + 'px');
+          backdrop.style.setProperty('--px', (-nx * 22).toFixed(1) + 'px');
+          backdrop.style.setProperty('--py', (-ny * 22).toFixed(1) + 'px');
+        };
+        var schedule = function () { if (!raf) raf = requestAnimationFrame(render); };
+
+        document.addEventListener('pointermove', function (e) {
+          if (e.pointerType && e.pointerType !== 'mouse') return;
+          var r = card.getBoundingClientRect();
+          nx = clamp((e.clientX - (r.left + r.width / 2)) / (window.innerWidth / 2), -1, 1);
+          ny = clamp((e.clientY - (r.top + r.height / 2)) / (window.innerHeight / 2), -1, 1);
+          gx = e.clientX - r.left;
+          gy = e.clientY - r.top;
+          card.style.setProperty('--go', '1');
+          card.classList.add('rl-tracking');
+          clearTimeout(idle);
+          idle = setTimeout(function () { card.classList.remove('rl-tracking'); }, 160);
+          schedule();
+        }, { passive: true });
+
+        document.documentElement.addEventListener('pointerleave', function () {
+          nx = 0; ny = 0;
+          card.style.setProperty('--go', '0');
+          card.classList.remove('rl-tracking');
+          schedule();
+        });
+
+        card.addEventListener('focusin', function () { lock = true; schedule(); });
+        card.addEventListener('focusout', function () {
+          setTimeout(function () {
+            lock = card.contains(document.activeElement);
+            schedule();
+          }, 0);
+        });
+      }
+
+      /* --- Gợn sóng khi bấm nút --- */
+      if (!reduce) {
+        document.addEventListener('pointerdown', function (e) {
+          var btn = e.target.closest && e.target.closest('#loginForm button[type="submit"], .demo-role-btn');
+          if (!btn) return;
+          var r = btn.getBoundingClientRect();
+          var size = Math.max(r.width, r.height) * 2.2;
+          var dot = document.createElement('span');
+          dot.className = 'rl-ripple';
+          dot.style.width = dot.style.height = size + 'px';
+          dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+          dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+          if (btn.matches('button[type="submit"]')) dot.style.setProperty('--rl-ripple', 'rgba(255,255,255,.35)');
+          btn.appendChild(dot);
+          dot.addEventListener('animationend', function () { dot.remove(); });
+        });
+      }
+
+      /* --- Báo lỗi: thẻ rung nhẹ như vật thật + viền đỏ --- */
+      var errBox = document.getElementById('loginError');
+      if (errBox && !reduce && 'MutationObserver' in window) {
+        var wasHidden = errBox.classList.contains('hidden');
+        new MutationObserver(function () {
+          var hidden = errBox.classList.contains('hidden');
+          if (wasHidden && !hidden) {
+            if (card.animate) {
+              card.animate(
+                [
+                  { translate: '0 0' }, { translate: '-8px 0' }, { translate: '7px 0' },
+                  { translate: '-5px 0' }, { translate: '3px 0' }, { translate: '0 0' }
+                ],
+                { duration: 420, easing: 'ease-out' }
+              );
+            }
+            card.classList.add('rl-error');
+            setTimeout(function () { card.classList.remove('rl-error'); }, 700);
+          }
+          wasHidden = hidden;
+        }).observe(errBox, { attributes: true, attributeFilter: ['class'] });
+      }
+
+      /* --- Đăng nhập thành công: hiệu ứng rời trang trước khi chuyển --- */
+      if (typeof window.safeRedirect === 'function' && !reduce) {
+        var originalRedirect = window.safeRedirect;
+        var leaving = false;
+        window.safeRedirect = function (url) {
+          if (window.__DISABLE_REDIRECT__ || leaving) return originalRedirect(url);
+          leaving = true;
+          var submit = document.querySelector('#loginForm button[type="submit"]');
+          if (submit) {
+            var label = submit.querySelector('span');
+            if (label) label.textContent = 'Đang vào hệ thống';
+            var icon = submit.querySelector('svg, i');
+            var spin = document.createElement('span');
+            spin.className = 'rl-spinner';
+            if (icon) icon.replaceWith(spin); else submit.appendChild(spin);
+          }
+          card.classList.add('rl-leaving');
+          setTimeout(function () { originalRedirect(url); }, 440);
+        };
+      }
+    })();
+  </script>
+
+</body>
+</html>

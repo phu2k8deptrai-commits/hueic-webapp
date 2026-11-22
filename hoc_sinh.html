@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SchoolPulse – Cổng Sinh viên – Trường CĐ Công nghiệp Huế (HueIC)</title>
+
+  <meta name="theme-color" content="#1976D2">
+  <link rel="icon" type="image/png" href="assets/hueic_logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="db_data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    if (window.HueIC && window.HueIC.requireAuth) {
+      window.HueIC.requireAuth('STUDENT');
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              600: '#1976D2',
+              700: '#1565C0',
+            },
+            edu: {
+              primary: '#1976D2',
+              primaryHover: '#1565C0',
+              primaryBright: '#007AFF',
+              primarySoft: '#EBF4FF',
+              bg: '#F4F6F9',
+              surface: '#FFFFFF',
+              surfaceSub: '#F8FAFC',
+              border: '#E5E7EB',
+              textMain: '#1C1E21',
+              textSecondary: '#6B7280',
+              textMuted: '#9CA3AF',
+              success: '#16A34A',
+              successBg: '#F0FDF4',
+              warning: '#EA580C',
+              warningBg: '#FFF7ED',
+              danger: '#DC2626',
+              dangerBg: '#FEF2F2',
+              purple: '#7C3AED',
+              purpleBg: '#F5F3FF'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --edu-primary: #1976D2;
+      --edu-primary-hover: #1565C0;
+      --edu-primary-bright: #007AFF;
+      --edu-primary-soft: #EBF4FF;
+
+      --edu-bg: #F4F6F9;
+      --edu-surface: #FFFFFF;
+      --edu-surface-sub: #F8FAFC;
+      --edu-border: #E5E7EB;
+      --edu-text-main: #1C1E21;
+      --edu-text-secondary: #6B7280;
+      --edu-text-muted: #9CA3AF;
+
+      --edu-success: #16A34A;        --edu-success-bg: #F0FDF4;
+      --edu-warning: #EA580C;        --edu-warning-bg: #FFF7ED;
+      --edu-danger: #DC2626;         --edu-danger-bg: #FEF2F2;
+      --edu-purple: #7C3AED;         --edu-purple-bg: #F5F3FF;
+    }
+    body {
+      background-color: #F4F6F9;
+      color: #1F2937;
+      font-family: 'Be Vietnam Pro', -apple-system, sans-serif;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+  <div id="root" class="flex-1 flex flex-col"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    const QUIZ_BANK = [
+      {
+        id: 1,
+        subject: 'Lập trình Web & Mobile',
+        question: 'Trong React 18, Hook nào được dùng để ghi nhớ kết quả của một phép tính tốn tài nguyên giữa các lần render?',
+        options: ['useCallback()', 'useMemo()', 'useRef()', 'useState()'],
+        answer: 1,
+        explanation: 'useMemo ghi nhớ giá trị trả về của hàm tính toán; còn useCallback ghi nhớ chính tham chiếu hàm đó.'
+      },
+      {
+        id: 2,
+        subject: 'Cơ sở dữ liệu MySQL',
+        question: 'Dạng chuẩn 3NF (Third Normal Form) yêu cầu lược đồ quan hệ đã đạt 2NF và loại bỏ loại phụ thuộc nào?',
+        options: ['Phụ thuộc hàm một phần', 'Thuộc tính đa trị', 'Phụ thuộc hàm bắc cầu', 'Trùng lặp khóa chính'],
+        answer: 2,
+        explanation: '3NF loại bỏ phụ thuộc bắc cầu giữa các thuộc tính không khóa (nếu A → B và B → C thì cần tách riêng).'
+      },
+      {
+        id: 3,
+        subject: 'Kỹ thuật Mạng máy tính',
+        question: 'Mạng 192.168.1.0/26 có Subnet Mask là gì và cấp phát được tối đa bao nhiêu địa chỉ IP cho Host?',
+        options: ['255.255.255.192 (62 Host)', '255.255.255.128 (126 Host)', '255.255.255.224 (30 Host)', '255.255.255.240 (14 Host)'],
+        answer: 0,
+        explanation: '/26 mượn 2 bit đầu ở octet 4 (128 + 64 = 192), còn 6 bit host nên số IP khả dụng là 2^6 - 2 = 62.'
+      },
+      {
+        id: 4,
+        subject: 'Lập trình Python',
+        question: 'Kiểu dữ liệu nào trong Python là bất biến (Immutable), không cho phép sửa đổi phần tử sau khi khởi tạo?',
+        options: ['List []', 'Dictionary {}', 'Set {}', 'Tuple ()'],
+        answer: 3,
+        explanation: 'Tuple sử dụng cặp ngoặc đơn () có tính bất biến, thường dùng cho dữ liệu cố định hoặc làm khóa từ điển.'
+      },
+      {
+        id: 5,
+        subject: 'Tiếng Anh chuyên ngành',
+        question: 'Thuật ngữ "Latency" trong mạng máy tính và hệ thống web mang nghĩa gì?',
+        options: ['Băng thông truyền tải', 'Độ trễ truyền gói tin', 'Tỷ lệ mất gói dữ liệu', 'Giao thức định tuyến'],
+        answer: 1,
+        explanation: 'Latency là khoảng thời gian trễ để dữ liệu đi từ máy gửi đến máy nhận (thường đo bằng ms).'
+      }
+    ];
+
+    const LECTURE_MODULES = [
+      {
+        code: 'IT401',
+        title: 'Lập trình Web & Mobile (React 18)',
+        chapters: ['Tổng quan Component & JSX', 'Quản lý State với useState & useEffect', 'Tối ưu render bằng useMemo / useCallback', 'Kết nối REST API & LocalStorage'],
+        cards: [
+          { front: 'Sự khác nhau chính giữa Props và State trong React?', back: 'Props được truyền từ component cha xuống (chỉ đọc). State là dữ liệu nội bộ của component và có thể cập nhật bằng setter.' },
+          { front: 'Khi nào useEffect chỉ chạy đúng 1 lần sau khi mount?', back: 'Khi truyền mảng dependency rỗng [] làm tham số thứ hai: useEffect(() => { ... }, []).' }
+        ]
+      },
+      {
+        code: 'IT402',
+        title: 'Cơ sở dữ liệu MySQL',
+        chapters: ['Mô hình thực thể kết hợp (ERD)', 'Chuẩn hóa dữ liệu 1NF – 2NF – 3NF', 'Truy vấn JOIN, GROUP BY & Subquery', 'Đánh Index và tối ưu câu lệnh SQL'],
+        cards: [
+          { front: 'INNER JOIN khác LEFT JOIN ở điểm nào?', back: 'INNER JOIN chỉ lấy các dòng khớp ở cả hai bảng. LEFT JOIN giữ toàn bộ dòng bảng bên trái, cột không khớp bên phải nhận NULL.' },
+          { front: 'Điều kiện để một bảng đạt chuẩn 3NF?', back: 'Đã đạt chuẩn 2NF và không có thuộc tính không khóa nào phụ thuộc bắc cầu vào khóa chính.' }
+        ]
+      },
+      {
+        code: 'IT403',
+        title: 'Kỹ thuật Mạng máy tính',
+        chapters: ['Mô hình OSI 7 tầng & TCP/IP', 'Chia địa chỉ IPv4 & Subnetting', 'Định tuyến tĩnh và động trên Router', 'Cấu hình VLAN & bảo mật Switch'],
+        cards: [
+          { front: 'TCP khác UDP như thế nào?', back: 'TCP hướng kết nối, đảm bảo gói tin đến đủ và đúng thứ tự. UDP không kết nối, truyền nhanh hơn nhưng không đảm bảo độ tin cậy.' },
+          { front: 'Công thức tính số địa chỉ Host khả dụng?', back: '2^(số bit host) - 2 (trừ 1 địa chỉ mạng và 1 địa chỉ broadcast).' }
+        ]
+      },
+      {
+        code: 'IT404',
+        title: 'Lập trình Python',
+        chapters: ['Cấu trúc dữ liệu List, Tuple, Dict, Set', 'Hàm, Lambda và List Comprehension', 'Lập trình hướng đối tượng (OOP)', 'Đọc/ghi file CSV, JSON và xử lý ngoại lệ'],
+        cards: [
+          { front: 'Tại sao cần dùng khối lệnh with open(...) khi đọc file?', back: 'Python sẽ tự động đóng tài nguyên file ngay khi thoát khối lệnh, kể cả khi xảy ra lỗi.' },
+          { front: 'List [] và Tuple () khác nhau điểm nào lớn nhất?', back: 'List có thể thêm/sửa/xóa phần tử (mutable), còn Tuple là bất biến (immutable).' }
+        ]
+      }
+    ];
+
+    const FALLBACK_DB = {
+      users: [
+        {
+          id: 2,
+          role: 'TEACHER',
+          full_name: 'Nguyễn Văn An',
+          department: 'Khoa Công nghệ Thông tin',
+          phone: '0902.000.001',
+          class_id: 1,
+          class_name: 'CĐ CNTT K48A'
+        }
+      ],
+      students: [
+        {
+          id: 1,
+          student_code: 'HUEIC2601',
+          full_name: 'Nguyễn Hoàng Long',
+          class_id: 1,
+          class_name: 'CĐ CNTT K48A',
+          gender: 'Nam',
+          major: 'Công nghệ Thông tin'
+        }
+      ],
+      grades: [
+        { id: 101, student_id: 1, subject: 'Lập trình Web & Mobile', oral: 8.5, quiz: 8.0, midterm: 8.5, final: 9.0 },
+        { id: 102, student_id: 1, subject: 'Cơ sở dữ liệu MySQL', oral: 8.0, quiz: 8.5, midterm: 8.0, final: 8.5 },
+        { id: 103, student_id: 1, subject: 'Kỹ thuật Mạng máy tính', oral: 8.0, quiz: 7.5, midterm: 8.0, final: 8.5 },
+        { id: 104, student_id: 1, subject: 'Lập trình Python', oral: 9.0, quiz: 8.5, midterm: 9.0, final: 9.5 },
+        { id: 105, student_id: 1, subject: 'Tiếng Anh chuyên ngành', oral: 8.0, quiz: 8.0, midterm: 8.5, final: 8.0 }
+      ],
+      attendance: [
+        { id: 201, student_id: 1, date: '2026-11-20', status: 'PRESENT', subject: 'Lập trình Web & Mobile' },
+        { id: 202, student_id: 1, date: '2026-11-19', status: 'PRESENT', subject: 'Cơ sở dữ liệu MySQL' },
+        { id: 203, student_id: 1, date: '2026-11-18', status: 'PRESENT', subject: 'Kỹ thuật Mạng máy tính' },
+        { id: 204, student_id: 1, date: '2026-11-17', status: 'EXCUSED', subject: 'Lập trình Python', note: 'Có đơn xin phép' },
+        { id: 205, student_id: 1, date: '2026-11-16', status: 'LATE', subject: 'Tiếng Anh chuyên ngành' }
+      ],
+      leaves: [],
+      tuition: { amount: 2850000, status: 'UNPAID', semester: 'Học kỳ I (2026 - 2027)' }
+    };
+
+    function getTodayISO() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      return new Date(now.getTime() - offset * 60000).toISOString().split('T')[0];
+    }
+
+    function formatDateVN(isoDate) {
+      if (!isoDate) return '—';
+      const parts = String(isoDate).split('-');
+      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : isoDate;
+    }
+
+    function getTodayLabelVN() {
+      const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+      const d = new Date();
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${days[d.getDay()]}, ${dd}/${mm}`;
+    }
+
+    function getVnInitials(fullName) {
+      if (!fullName) return 'SV';
+      const cleaned = fullName.replace(/^(Thầy|Cô|ThS\.|TS\.|GV\.)\s*/i, '').trim();
+      const words = cleaned.split(/\s+/).filter(Boolean);
+      if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+      return (words[words.length - 2][0] + words[words.length - 1][0]).toUpperCase();
+    }
+
+    function isValidScore(v) {
+      return v !== '' && v !== null && v !== undefined && !Number.isNaN(Number(v));
+    }
+
+    function formatScore(v) {
+      return isValidScore(v) ? Number(v).toFixed(1) : '—';
+    }
+
+    function calcSubjectAvg(g) {
+      if (!g) return null;
+      const mid = isValidScore(g.midterm) ? g.midterm : g.period;
+      if (![g.oral, g.quiz, mid, g.final].every(isValidScore)) return null;
+      const val = Number(g.oral) * 0.1 + Number(g.quiz) * 0.2 + Number(mid) * 0.2 + Number(g.final) * 0.5;
+      return Math.round(val * 10) / 10;
+    }
+
+    function getRankInfo(avg) {
+      if (avg === null || Number.isNaN(avg)) {
+        return { letter: '—', name: 'Chưa xếp loại', passed: null, badge: 'bg-slate-100 text-slate-500 border-slate-200' };
+      }
+      if (avg >= 8.5) return { letter: 'A', name: 'Giỏi', passed: true, badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      if (avg >= 7.0) return { letter: 'B', name: 'Khá', passed: true, badge: 'bg-blue-50 text-blue-700 border-blue-200' };
+      if (avg >= 5.5) return { letter: 'C', name: 'Trung bình', passed: true, badge: 'bg-amber-50 text-amber-700 border-amber-200' };
+      if (avg >= 4.0) return { letter: 'D', name: 'TB yếu', passed: true, badge: 'bg-orange-50 text-orange-700 border-orange-200' };
+      return { letter: 'F', name: 'Kém', passed: false, badge: 'bg-red-50 text-red-700 border-red-200' };
+    }
+
+    function getAttendanceMeta(status) {
+      switch (status) {
+        case 'PRESENT':
+          return { label: 'Có mặt', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        case 'LATE':
+          return { label: 'Đi trễ', cls: 'bg-purple-50 text-purple-700 border-purple-200' };
+        case 'EXCUSED':
+          return { label: 'Có phép', cls: 'bg-amber-50 text-amber-700 border-amber-200' };
+        default:
+          return { label: 'Không phép', cls: 'bg-red-50 text-red-700 border-red-200' };
+      }
+    }
+
+    function getStoredDb() {
+      const saved = localStorage.getItem('sll_local_db');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && Array.isArray(parsed.students)) {
+            if (typeof window !== 'undefined' && window.INITIAL_DB && Array.isArray(window.INITIAL_DB.students) && parsed.students.length < window.INITIAL_DB.students.length) {
+              try { localStorage.setItem('sll_local_db', JSON.stringify(window.INITIAL_DB)); } catch (e) {}
+              return window.INITIAL_DB;
+            }
+            return parsed;
+          }
+        } catch (e) {}
+      }
+      if (typeof window !== 'undefined' && window.INITIAL_DB) {
+        try {
+          localStorage.setItem('sll_local_db', JSON.stringify(window.INITIAL_DB));
+        } catch (e) {}
+        return window.INITIAL_DB;
+      }
+      try {
+        localStorage.setItem('sll_local_db', JSON.stringify(FALLBACK_DB));
+      } catch (e) {}
+      return FALLBACK_DB;
+    }
+
+    function Icon({ name, className = 'w-4 h-4' }) {
+      const props = {
+        className,
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 1.85,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+        viewBox: '0 0 24 24'
+      };
+      switch (name) {
+        case 'schedule':
+        case 'calendar':
+          return <svg {...props}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>;
+        case 'dashboard':
+          return <svg {...props}><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>;
+        case 'grades':
+          return <svg {...props}><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>;
+        case 'attendance':
+          return <svg {...props}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>;
+        case 'leaves':
+          return <svg {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>;
+        case 'fees':
+          return <svg {...props}><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>;
+        case 'lectures':
+          return <svg {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
+        case 'assessment':
+          return <svg {...props}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+        case 'assistant':
+          return <svg {...props}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
+        case 'logout':
+          return <svg {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+        case 'copy':
+          return <svg {...props}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
+        case 'send':
+          return <svg {...props}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
+        case 'swap':
+          return <svg {...props}><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>;
+        case 'users':
+          return <svg {...props}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+        case 'search':
+          return <svg {...props}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+        case 'x':
+          return <svg {...props}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        case 'check':
+          return <svg {...props}><polyline points="20 6 9 17 4 12"/></svg>;
+        case 'award':
+          return <svg {...props}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>;
+        case 'calendar':
+          return <svg {...props}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+        case 'phone':
+          return <svg {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
+        case 'mail':
+          return <svg {...props}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>;
+        default:
+          return null;
+      }
+    }
+
+    function StudentApp() {
+      const [dbData, setDbData] = useState(() => getStoredDb());
+      const [currentTab, setCurrentTab] = useState('dashboard');
+      const [logoBroken, setLogoBroken] = useState(false);
+      const [qrBroken, setQrBroken] = useState(false);
+
+      // Quản lý sinh viên đang xem (đọc từ sessionStorage)
+      const [selectedStudentCode, setSelectedStudentCode] = useState(() => {
+        return sessionStorage.getItem('hueic_student_code') || '';
+      });
+      const [selectedStudentId, setSelectedStudentId] = useState(() => {
+        return sessionStorage.getItem('current_student_id') || '';
+      });
+
+      // Modal đổi sinh viên / đổi lớp
+      const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+      const [modalClassFilter, setModalClassFilter] = useState('ALL');
+      const [modalSearchTerm, setModalSearchTerm] = useState('');
+
+      const [toast, setToast] = useState(null);
+      const toastTimerRef = useRef(null);
+      const chatBottomRef = useRef(null);
+
+      // Đồng bộ realtime khi cổng giảng viên cập nhật localStorage
+      useEffect(() => {
+        const onStorage = (e) => {
+          if (e.key === 'sll_local_db' && e.newValue) {
+            try { setDbData(JSON.parse(e.newValue)); } catch (err) {}
+          }
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+      }, []);
+
+      const showToast = (title, message, type = 'success') => {
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        setToast({ title, message, type });
+        toastTimerRef.current = setTimeout(() => setToast(null), 3200);
+      };
+
+      const persistDb = (nextDb) => {
+        setDbData(nextDb);
+        try {
+          localStorage.setItem('sll_local_db', JSON.stringify(nextDb));
+        } catch (e) {
+          showToast('Lỗi lưu dữ liệu', 'Không thể ghi vào bộ nhớ trình duyệt.', 'error');
+        }
+      };
+
+      // Danh sách toàn bộ sinh viên
+      const allStudents = useMemo(() => {
+        return Array.isArray(dbData?.students) && dbData.students.length > 0
+          ? dbData.students
+          : FALLBACK_DB.students;
+      }, [dbData?.students]);
+
+      // Sinh viên hiện tại đọc từ sessionStorage
+      const currentStudent = useMemo(() => {
+        if (selectedStudentCode) {
+          const found = allStudents.find(s => s.student_code && s.student_code.toUpperCase() === selectedStudentCode.toUpperCase());
+          if (found) return found;
+        }
+        if (selectedStudentId) {
+          const found = allStudents.find(s => String(s.id) === String(selectedStudentId));
+          if (found) return found;
+        }
+        return allStudents[0] || FALLBACK_DB.students[0];
+      }, [allStudents, selectedStudentCode, selectedStudentId]);
+
+      // Đồng bộ vào sessionStorage khi currentStudent xác định
+      useEffect(() => {
+        if (currentStudent) {
+          sessionStorage.setItem('hueic_student_code', currentStudent.student_code);
+          sessionStorage.setItem('current_student_id', currentStudent.id);
+          sessionStorage.setItem('hueic_role', 'STUDENT');
+        }
+      }, [currentStudent]);
+
+      // Cố vấn học tập (CVHT) phụ trách chính xác theo lớp của sinh viên
+      const classAdvisor = useMemo(() => {
+        if (currentStudent.teacher_name) {
+          const foundTeacher = (dbData?.users || []).find(u =>
+            u.role === 'TEACHER' && (
+              (u.full_name && currentStudent.teacher_name.includes(u.full_name.replace(/^(Thầy|Cô|GVCN)\s*/i, ''))) ||
+              (currentStudent.teacher_phone && u.phone === currentStudent.teacher_phone)
+            )
+          );
+          if (foundTeacher) {
+            return {
+              ...foundTeacher,
+              full_name: currentStudent.teacher_name,
+              phone: currentStudent.teacher_phone || foundTeacher.phone || '0902.000.001',
+              email: currentStudent.teacher_email || foundTeacher.email || 'daotao@hueic.edu.vn',
+              department: currentStudent.department || foundTeacher.department || 'Ban Cố vấn Học tập',
+              class_name: currentStudent.class_name
+            };
+          }
+          return {
+            id: currentStudent.class_id,
+            role: 'TEACHER',
+            full_name: currentStudent.teacher_name,
+            phone: currentStudent.teacher_phone || '0902.000.001',
+            email: currentStudent.teacher_email || 'daotao@hueic.edu.vn',
+            department: currentStudent.department || 'Ban Cố vấn Học tập',
+            class_name: currentStudent.class_name
+          };
+        }
+
+        const matchedClass = (dbData?.classes || []).find(c => c.id === currentStudent.class_id);
+        if (matchedClass) {
+          return {
+            id: matchedClass.id,
+            role: 'TEACHER',
+            full_name: matchedClass.teacher_name,
+            phone: matchedClass.teacher_phone,
+            email: matchedClass.teacher_email,
+            department: matchedClass.department,
+            class_name: matchedClass.name
+          };
+        }
+        return dbData?.users?.find(u => u.role === 'TEACHER') || FALLBACK_DB.users[0];
+      }, [dbData, currentStudent]);
+
+      const studentClassName = currentStudent.class_name || classAdvisor.class_name || 'CĐ CNTT K48A';
+
+      // Chuyển sinh viên
+      const handleSwitchStudent = (st) => {
+        setSelectedStudentCode(st.student_code);
+        setSelectedStudentId(st.id);
+        sessionStorage.setItem('hueic_student_code', st.student_code);
+        sessionStorage.setItem('current_student_id', st.id);
+        sessionStorage.setItem('hueic_role', 'STUDENT');
+        setIsSwitchModalOpen(false);
+        showToast('Đã đổi sinh viên thành công', `Đang xem cổng thông tin của ${st.full_name} (${st.student_code} • ${st.class_name}).`, 'success');
+      };
+
+      const studentGrades = useMemo(() => {
+        const list = (dbData?.grades || []).filter(g => g.student_id === currentStudent.id);
+        return list.length > 0 ? list : FALLBACK_DB.grades;
+      }, [dbData?.grades, currentStudent.id]);
+
+      const overallStats = useMemo(() => {
+        const validAvgs = studentGrades.map(calcSubjectAvg).filter(v => v !== null);
+        if (validAvgs.length === 0) {
+          return { avg: null, rank: getRankInfo(null), completed: 0 };
+        }
+        const mean = Math.round((validAvgs.reduce((a, b) => a + b, 0) / validAvgs.length) * 10) / 10;
+        return { avg: mean, rank: getRankInfo(mean), completed: validAvgs.length };
+      }, [studentGrades]);
+
+      const studentAttendance = useMemo(() => {
+        const list = (dbData?.attendance || []).filter(a => a.student_id === currentStudent.id);
+        const source = list.length > 0 ? list : FALLBACK_DB.attendance;
+        return [...source].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+      }, [dbData?.attendance, currentStudent.id]);
+
+      const attendanceStats = useMemo(() => {
+        const counts = { PRESENT: 0, EXCUSED: 0, UNEXCUSED: 0, LATE: 0 };
+        studentAttendance.forEach(a => {
+          if (counts[a.status] !== undefined) counts[a.status]++;
+        });
+        const total = studentAttendance.length;
+        const rate = total > 0 ? Math.round(((counts.PRESENT + counts.LATE) / total) * 100) : 100;
+        return { ...counts, total, rate };
+      }, [studentAttendance]);
+
+      const studentLeaves = useMemo(() => {
+        return (dbData?.leaves || []).filter(l => l.student_id === currentStudent.id);
+      }, [dbData?.leaves, currentStudent.id]);
+
+      const leaveStats = useMemo(() => ({
+        total: studentLeaves.length,
+        approved: studentLeaves.filter(l => l.status === 'APPROVED').length,
+        pending: studentLeaves.filter(l => l.status === 'PENDING').length
+      }), [studentLeaves]);
+
+      // Form đơn nghỉ phép
+      const [leaveForm, setLeaveForm] = useState(() => ({
+        startDate: getTodayISO(),
+        endDate: getTodayISO(),
+        reason: ''
+      }));
+
+      const handleLeaveSubmit = (e) => {
+        e.preventDefault();
+        if (!leaveForm.reason.trim()) {
+          showToast('Thiếu thông tin', 'Vui lòng ghi rõ lý do xin nghỉ phép.', 'error');
+          return;
+        }
+        if (leaveForm.endDate < leaveForm.startDate) {
+          showToast('Ngày không hợp lệ', 'Ngày kết thúc không thể trước ngày bắt đầu.', 'error');
+          return;
+        }
+
+        const newLeave = {
+          id: Date.now(),
+          student_id: currentStudent.id,
+          student_name: currentStudent.full_name,
+          class_name: studentClassName,
+          start_date: leaveForm.startDate,
+          end_date: leaveForm.endDate,
+          reason: leaveForm.reason.trim(),
+          status: 'PENDING',
+          created_at: new Date().toISOString()
+        };
+
+        persistDb({
+          ...FALLBACK_DB,
+          ...dbData,
+          leaves: [newLeave, ...(dbData?.leaves || [])]
+        });
+
+        setLeaveForm({ startDate: getTodayISO(), endDate: getTodayISO(), reason: '' });
+        showToast('Đã gửi đơn nghỉ phép', 'Đơn đã chuyển tới cố vấn học tập chờ phê duyệt.', 'success');
+      };
+
+      const handleCancelLeave = (leaveId) => {
+        const updated = (dbData?.leaves || []).filter(l => l.id !== leaveId);
+        persistDb({ ...FALLBACK_DB, ...dbData, leaves: updated });
+        showToast('Đã rút đơn', 'Đơn xin nghỉ phép đang chờ duyệt đã được hủy.', 'info');
+      };
+
+      // Tài liệu & Flashcard
+      const [activeModuleIdx, setActiveModuleIdx] = useState(0);
+      const [cardIdx, setCardIdx] = useState(0);
+      const [cardFlipped, setCardFlipped] = useState(false);
+
+      const activeModule = LECTURE_MODULES[activeModuleIdx];
+      const activeCard = activeModule.cards[cardIdx] || activeModule.cards[0];
+
+      const handleSelectModule = (idx) => {
+        setActiveModuleIdx(idx);
+        setCardIdx(0);
+        setCardFlipped(false);
+      };
+
+      // Trắc nghiệm
+      const [quizAnswers, setQuizAnswers] = useState({});
+      const [quizSubmitted, setQuizSubmitted] = useState(false);
+
+      const answeredCount = Object.keys(quizAnswers).length;
+      const quizCorrectCount = useMemo(() => {
+        return QUIZ_BANK.filter(q => quizAnswers[q.id] === q.answer).length;
+      }, [quizAnswers]);
+
+      const handleQuizSubmit = () => {
+        if (answeredCount < QUIZ_BANK.length) {
+          showToast('Chưa hoàn thành hết câu hỏi', `Bạn mới chọn ${answeredCount}/${QUIZ_BANK.length} câu, hệ thống vẫn chấm bài hiện tại.`, 'info');
+        } else {
+          showToast('Đã nộp bài luyện tập', `Bạn trả lời đúng ${quizCorrectCount}/${QUIZ_BANK.length} câu.`, 'success');
+        }
+        setQuizSubmitted(true);
+      };
+
+      // Hỏi đáp học vụ (trả lời theo dữ liệu thật)
+      const firstName = currentStudent.full_name.trim().split(/\s+/).slice(-1)[0] || 'bạn';
+      const [chatMessages, setChatMessages] = useState(() => [
+        {
+          id: 1,
+          sender: 'bot',
+          text: `Chào ${firstName}, bạn cần tra cứu nhanh điểm học phần, chuyên cần, đơn nghỉ phép hay thông tin học phí?`
+        }
+      ]);
+      const [chatInput, setChatInput] = useState('');
+      const [isTyping, setIsTyping] = useState(false);
+
+      useEffect(() => {
+        if (currentTab === 'assistant') {
+          chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, [chatMessages, isTyping, currentTab]);
+
+      const buildDynamicReply = (rawQuestion) => {
+        const q = rawQuestion.toLowerCase();
+        if (q.includes('điểm') || q.includes('kết quả') || q.includes('xếp loại')) {
+          if (overallStats.avg === null) {
+            return 'Hiện các học phần của bạn chưa có đủ điểm thành phần để tính trung bình học kỳ.';
+          }
+          const topSub = [...studentGrades]
+            .map(g => ({ name: g.subject || g.subject_name, avg: calcSubjectAvg(g) }))
+            .filter(x => x.avg !== null)
+            .sort((a, b) => b.avg - a.avg)[0];
+          return `Điểm trung bình hiện tại của bạn là ${overallStats.avg.toFixed(1)} (xếp loại ${overallStats.rank.name}, đã đủ điểm ${overallStats.completed}/${studentGrades.length} môn).${topSub ? ` Môn cao nhất là ${topSub.name} (${topSub.avg.toFixed(1)}).` : ''}`;
+        }
+        if (q.includes('chuyên cần') || q.includes('vắng') || q.includes('điểm danh')) {
+          return `Tỷ lệ chuyên cần của bạn là ${attendanceStats.rate}% trên tổng số ${attendanceStats.total} buổi đã ghi nhận (${attendanceStats.PRESENT} có mặt, ${attendanceStats.LATE} đi trễ, ${attendanceStats.EXCUSED} có phép, ${attendanceStats.UNEXCUSED} không phép).`;
+        }
+        if (q.includes('nghỉ phép') || q.includes('đơn')) {
+          if (leaveStats.total === 0) {
+            return 'Bạn chưa gửi đơn xin nghỉ phép nào trong học kỳ này. Bạn có thể vào mục "Đơn nghỉ phép" để tạo đơn mới.';
+          }
+          return `Bạn đã gửi ${leaveStats.total} đơn nghỉ phép: ${leaveStats.approved} đơn đã duyệt, ${leaveStats.pending} đơn đang chờ cố vấn học tập xử lý.`;
+        }
+        if (q.includes('học phí') || q.includes('tiền') || q.includes('qr')) {
+          const fee = Number(dbData?.tuition?.amount || 2850000).toLocaleString('vi-VN');
+          return `Học phí kỳ hiện tại là ${fee} VNĐ. Bạn mở mục "Học phí & VietQR" để lấy mã QR hoặc sao chép nội dung chuyển khoản chuẩn.`;
+        }
+        if (q.includes('lịch') || q.includes('phòng') || q.includes('cố vấn')) {
+          return `Hôm nay có tiết thực hành Lập trình Web & Mobile tại Phòng Lab A204. Cố vấn học tập lớp ${studentClassName} là ${classAdvisor.full_name} (SĐT: ${classAdvisor.phone || '0902.000.001'}).`;
+        }
+        return 'Mình hỗ trợ tra cứu nhanh: điểm học kỳ, chuyên cần, trạng thái đơn nghỉ phép, lịch phòng máy và học phí. Bạn có thể bấm một gợi ý bên dưới để hỏi nhanh.';
+      };
+
+      const sendChatQuestion = (text) => {
+        const clean = text.trim();
+        if (!clean || isTyping) return;
+        setChatMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: clean }]);
+        setChatInput('');
+        setIsTyping(true);
+        setTimeout(() => {
+          const reply = buildDynamicReply(clean);
+          setChatMessages(prev => [...prev, { id: Date.now() + 1, sender: 'bot', text: reply }]);
+          setIsTyping(false);
+        }, 350);
+      };
+
+      const handleCopyTransferInfo = (text) => {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast('Đã sao chép', `Nội dung "${text}" đã lưu vào bộ nhớ tạm.`, 'success');
+          }).catch(() => {
+            showToast('Nội dung chuyển khoản', text, 'info');
+          });
+        } else {
+          showToast('Nội dung chuyển khoản', text, 'info');
+        }
+      };
+
+      const navItems = [
+        { id: 'dashboard', label: 'Tổng quan', icon: 'dashboard' },
+        { id: 'grades', label: `Bảng điểm (${studentGrades.length})`, icon: 'grades' },
+        { id: 'attendance', label: 'Chuyên cần', icon: 'attendance' },
+        { id: 'schedule', label: 'Lịch học cả năm', icon: 'schedule' },
+        { id: 'leaves', label: 'Đơn nghỉ phép', icon: 'leaves', badge: leaveStats.pending > 0 ? leaveStats.pending : null },
+        { id: 'fees', label: 'Học phí & VietQR', icon: 'fees' },
+        { id: 'lectures', label: 'Tài liệu & Flashcard', icon: 'lectures' },
+        { id: 'assessment', label: 'Luyện trắc nghiệm', icon: 'assessment' },
+        { id: 'assistant', label: 'Hỏi đáp học vụ', icon: 'assistant' }
+      ];
+
+      const advisorDisplayName = classAdvisor.full_name?.startsWith('Thầy') || classAdvisor.full_name?.startsWith('Cô')
+        ? classAdvisor.full_name
+        : `GV. ${classAdvisor.full_name}`;
+
+      const studentFees = useMemo(() => {
+        return (dbData?.fees || []).filter(f => f.student_id === currentStudent.id);
+      }, [dbData?.fees, currentStudent.id]);
+
+      const tuitionAmount = useMemo(() => {
+        const unpaidFee = studentFees.find(f => f.status === 'UNPAID');
+        if (unpaidFee) return Number(unpaidFee.amount);
+        if (studentFees.length > 0) return Number(studentFees[0].amount);
+        return Number(dbData?.tuition?.amount || 2850000);
+      }, [studentFees, dbData?.tuition]);
+
+      const transferNote = `HP ${currentStudent.student_code} ${currentStudent.full_name}`;
+
+      // Điểm rèn luyện (thang điểm 100, phản ánh trung thực chuyên cần & nề nếp)
+      const conductInfo = useMemo(() => {
+        const attRate = attendanceStats.rate || 100;
+        const attPart = Math.round((attRate / 100) * 20);
+        const avgScore = overallStats.avg || 7.5;
+        const gradePart = Math.min(10, Math.round(avgScore));
+        const base = 62 + ((currentStudent.id * 7) % 7);
+        const total = Math.min(97, Math.max(76, base + attPart + gradePart - 10));
+        let rank = 'Tốt';
+        let badge = 'bg-blue-50 text-blue-700 border-blue-200';
+        if (total >= 90) { rank = 'Xuất sắc'; badge = 'bg-purple-50 text-purple-700 border-purple-200'; }
+        else if (total >= 80) { rank = 'Tốt'; badge = 'bg-emerald-50 text-emerald-700 border-emerald-200'; }
+        else if (total >= 65) { rank = 'Khá'; badge = 'bg-amber-50 text-amber-700 border-amber-200'; }
+        else { rank = 'Trung bình'; badge = 'bg-orange-50 text-orange-700 border-orange-200'; }
+        return { score: total, rank, badge };
+      }, [attendanceStats.rate, overallStats.avg, currentStudent.id]);
+
+      // Phòng học và lịch thực hành theo chuyên ngành
+      const departmentLabMap = {
+        'Khoa Công nghệ Thông tin': ['Phòng Lab A204', 'Phòng Lab B102'],
+        'Khoa Điện – Điện tử': ['Xưởng TH Điện E301', 'Phòng Khí Cụ Điện E202'],
+        'Khoa Cơ khí Chế tạo': ['Xưởng Động Cơ Ô tô C105', 'Xưởng Khung Gầm C106'],
+        'Khoa Mỹ thuật & Thiết kế': ['Multimedia Studio D401', 'Phòng Đồ Họa D402']
+      };
+      const currentLabs = departmentLabMap[currentStudent.department] || ['Phòng Chuyên đề A204', 'Phòng Thực hành B102'];
+      const firstSubjectName = studentGrades[0]?.subject || 'Thực hành chuyên ngành 1';
+      const secondSubjectName = studentGrades[1]?.subject || 'Lý thuyết chuyên sâu 2';
+
+      // Lọc danh sách sinh viên cho Modal đổi sinh viên
+      const filteredStudentsForModal = useMemo(() => {
+        return allStudents.filter(s => {
+          const matchClass = modalClassFilter === 'ALL' || String(s.class_id) === String(modalClassFilter) || s.class_name === modalClassFilter;
+          const term = modalSearchTerm.trim().toLowerCase();
+          const matchSearch = !term || (s.full_name && s.full_name.toLowerCase().includes(term)) || (s.student_code && s.student_code.toLowerCase().includes(term));
+          return matchClass && matchSearch;
+        });
+      }, [allStudents, modalClassFilter, modalSearchTerm]);
+
+      return (
+        <div className="flex flex-col min-h-screen">
+          {/* Header */}
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {!logoBroken ? (
+                  <img
+                    src="assets/hueic_logo.png"
+                    alt="HueIC"
+                    onError={() => setLogoBroken(true)}
+                    className="w-9 h-9 object-contain rounded-md shrink-0"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-md bg-brand-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                    SP
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="font-bold text-sm sm:text-[15px] text-slate-900 truncate">
+                      SchoolPulse – Cổng Sinh viên
+                    </h1>
+                    <span className="hidden md:inline-block bg-blue-50 text-brand-600 text-[11px] font-semibold px-2 py-0.5 rounded border border-blue-100">
+                      {studentClassName}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 truncate hidden sm:block">
+                    SchoolPulse • Trường Cao đẳng Công nghiệp Huế • Sổ liên lạc &amp; Học vụ trực tuyến
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0">
+                
+
+                <div className="hidden sm:block text-right leading-tight">
+                  <div className="text-[13px] font-semibold text-slate-800">{currentStudent.full_name}</div>
+                  <div className="text-[11px] text-slate-500 font-mono">{currentStudent.student_code}</div>
+                </div>
+                <div
+                  className="w-8 h-8 rounded-full bg-blue-50 text-brand-600 font-bold flex items-center justify-center text-xs border border-blue-200"
+                  title={`${currentStudent.full_name} (${currentStudent.student_code})`}
+                >
+                  {getVnInitials(currentStudent.full_name)}
+                </div>
+                <button
+                  onClick={() => {
+                    if (window.HueIC && window.HueIC.logout) {
+                      window.HueIC.logout();
+                    } else {
+                      sessionStorage.clear();
+                      window.location.href = 'index.html';
+                    }
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 text-slate-600 hover:text-red-600 text-xs font-medium transition flex items-center gap-1.5 cursor-pointer"
+                  title="Đăng xuất khỏi hệ thống"
+                >
+                  <Icon name="logout" className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Đăng xuất</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Menu ngang cho màn hình nhỏ */}
+            <div className="lg:hidden border-t border-slate-100 overflow-x-auto custom-scroll">
+              <div className="flex px-3 py-1.5 gap-1 min-w-max">
+                {navItems.map(tab => {
+                  const active = currentTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setCurrentTab(tab.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition cursor-pointer ${
+                        active ? 'bg-blue-50 text-brand-600 font-semibold' : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Icon name={tab.icon} className="w-3.5 h-3.5" />
+                      <span>{tab.label}</span>
+                      {tab.badge && (
+                        <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full leading-none font-bold">
+                          {tab.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </header>
+
+          {/* Khung nội dung chính */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            {/* Sidebar (Desktop) */}
+            <aside className="hidden lg:block lg:col-span-3 space-y-4 sticky top-20">
+              <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-sm">
+                <div className="px-2.5 pt-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Học tập &amp; Tra cứu
+                </div>
+                <nav className="space-y-1">
+                  {navItems.map(tab => {
+                    const active = currentTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setCurrentTab(tab.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[13px] transition text-left cursor-pointer ${
+                          active
+                            ? 'bg-blue-50 text-brand-600 font-semibold'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <Icon name={tab.icon} className={`w-4 h-4 ${active ? 'text-brand-600' : 'text-slate-400'}`} />
+                          <span>{tab.label}</span>
+                        </span>
+                        {tab.badge && (
+                          <span className="bg-orange-100 text-orange-700 border border-orange-200 text-[11px] px-1.5 py-0.5 rounded-md font-semibold leading-none">
+                            {tab.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Thông tin cố vấn học tập */}
+              <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-sm space-y-3">
+                <div className="text-xs font-semibold text-slate-700">Cố vấn học tập (CVHT)</div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-blue-50 text-brand-600 font-bold text-xs flex items-center justify-center border border-blue-200 shrink-0">
+                    {getVnInitials(classAdvisor.full_name)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-semibold text-slate-800 truncate">{advisorDisplayName}</div>
+                    <div className="text-[11px] text-slate-500 truncate">{classAdvisor.department || currentStudent.department || 'Khoa Công nghệ Thông tin'}</div>
+                  </div>
+                </div>
+                <div className="pt-2.5 border-t border-slate-100 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Điện thoại</span>
+                    <a href={`tel:${(classAdvisor.phone || '0902000001').replace(/\./g, '')}`} className="font-semibold text-brand-600 hover:underline tabular-nums">
+                      {classAdvisor.phone || '0902.000.001'}
+                    </a>
+                  </div>
+                  {classAdvisor.email && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Email</span>
+                      <a href={`mailto:${classAdvisor.email}`} className="font-mono text-[11px] text-slate-600 hover:text-brand-600 truncate max-w-[150px]">
+                        {classAdvisor.email}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </aside>
+
+            {/* Khu vực nội dung chính */}
+            <main className="lg:col-span-9 space-y-4">
+              {/* TAB 1: TỔNG QUAN */}
+              {currentTab === 'dashboard' && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
+                      <div>
+                        <span className="text-[11px] font-semibold text-brand-600 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100 inline-block mb-1.5">
+                          Học kỳ I • Năm học 2026 – 2027
+                        </span>
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-900">Xin chào, {currentStudent.full_name}</h2>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Mã SV: <strong className="font-mono text-slate-700">{currentStudent.student_code}</strong> • Lớp <strong className="text-slate-700">{studentClassName}</strong> • {currentStudent.major || 'Công nghệ Thông tin'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 self-start sm:self-center">
+                        <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${overallStats.rank.badge}`}>
+                          Học lực: {overallStats.rank.name}
+                        </span>
+                        <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${conductInfo.badge}`}>
+                          Rèn luyện: {conductInfo.rank} ({conductInfo.score}đ)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 5 chỉ số chính bao gồm Điểm rèn luyện */}
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-4">
+                      {/* Thẻ 1: Chuyên cần */}
+                      <button
+                        onClick={() => setCurrentTab('attendance')}
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:border-brand-600/50 text-left transition cursor-pointer"
+                      >
+                        <div className="text-xs text-slate-500 flex items-center justify-between">
+                          <span>Chuyên cần</span>
+                          <Icon name="attendance" className="w-3.5 h-3.5 text-emerald-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-emerald-600 tabular-nums mt-1">{attendanceStats.rate}%</div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">{attendanceStats.PRESENT}/{attendanceStats.total} buổi có mặt</div>
+                      </button>
+
+                      {/* Thẻ 2: Điểm TB học kỳ */}
+                      <button
+                        onClick={() => setCurrentTab('grades')}
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:border-brand-600/50 text-left transition cursor-pointer"
+                      >
+                        <div className="text-xs text-slate-500 flex items-center justify-between">
+                          <span>Điểm TB HK</span>
+                          <Icon name="grades" className="w-3.5 h-3.5 text-brand-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-brand-600 tabular-nums mt-1">
+                          {overallStats.avg !== null ? overallStats.avg.toFixed(1) : '—'}
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">Đủ điểm {overallStats.completed}/{studentGrades.length} môn</div>
+                      </button>
+
+                      {/* Thẻ 3: Điểm rèn luyện */}
+                      <button
+                        onClick={() => setCurrentTab('attendance')}
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:border-brand-600/50 text-left transition cursor-pointer"
+                      >
+                        <div className="text-xs text-slate-500 flex items-center justify-between">
+                          <span>Điểm rèn luyện</span>
+                          <Icon name="award" className="w-3.5 h-3.5 text-purple-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-purple-600 tabular-nums mt-1">{conductInfo.score}</div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">Xếp loại {conductInfo.rank}</div>
+                      </button>
+
+                      {/* Thẻ 4: Xếp loại học lực */}
+                      <button
+                        onClick={() => setCurrentTab('grades')}
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:border-brand-600/50 text-left transition cursor-pointer"
+                      >
+                        <div className="text-xs text-slate-500 flex items-center justify-between">
+                          <span>Xếp loại</span>
+                          <span className="font-bold text-slate-400">#</span>
+                        </div>
+                        <div className="text-2xl font-bold text-slate-900 mt-1">{overallStats.rank.letter}</div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">{overallStats.rank.name}</div>
+                      </button>
+
+                      {/* Thẻ 5: Đơn nghỉ phép */}
+                      <button
+                        onClick={() => setCurrentTab('leaves')}
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:border-brand-600/50 text-left transition cursor-pointer col-span-2 sm:col-span-1"
+                      >
+                        <div className="text-xs text-slate-500 flex items-center justify-between">
+                          <span>Đơn nghỉ phép</span>
+                          <Icon name="leaves" className="w-3.5 h-3.5 text-amber-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-amber-600 tabular-nums mt-1">{leaveStats.total}</div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">
+                          {leaveStats.approved} đã duyệt{leaveStats.pending > 0 ? ` • ${leaveStats.pending} chờ` : ''}
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                        <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-sm text-slate-900">Lịch học trong ngày</h3>
+              <button onClick={() => setCurrentTab('schedule')} className="text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline flex items-center gap-1 cursor-pointer">
+                <span>Xem lịch cả năm</span>
+                <Icon name="arrow-right" className="w-3 h-3" />
+              </button>
+            </div>
+                        <span className="text-xs text-brand-600 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                          {getTodayLabelVN()}
+                        </span>
+                      </div>
+                      <div className="space-y-2.5">
+                        <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 flex items-start gap-3">
+                          <span className="px-2 py-1 bg-blue-50 text-brand-600 font-semibold text-xs rounded border border-blue-100 shrink-0">Tiết 1–3</span>
+                          <div>
+                            <p className="font-semibold text-[13px] text-slate-900">{firstSubjectName}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{currentLabs[0]} • {advisorDisplayName}</p>
+                          </div>
+                        </div>
+                        <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 flex items-start gap-3">
+                          <span className="px-2 py-1 bg-white text-slate-600 font-semibold text-xs rounded border border-slate-200 shrink-0">Tiết 7–9</span>
+                          <div>
+                            <p className="font-semibold text-[13px] text-slate-900">{secondSubjectName}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{currentLabs[1]} • Giảng viên bộ môn</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                        <h3 className="font-semibold text-sm text-slate-900">Thông báo từ {currentStudent.department || 'Khoa Đào tạo'}</h3>
+                        <span className="text-xs text-slate-400">Học vụ</span>
+                      </div>
+                      <div className="space-y-2.5">
+                        <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-semibold bg-blue-50 text-brand-600 px-2 py-0.5 rounded border border-blue-100">Lịch thi</span>
+                            <span className="text-[11px] text-slate-400">Tuần tới</span>
+                          </div>
+                          <p className="text-[13px] font-semibold text-slate-900 mt-1.5">Thi kết thúc học phần đợt 1</p>
+                          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                            Sinh viên lớp <strong className="text-slate-800">{studentClassName}</strong> mang theo thẻ sinh viên và có mặt trước giờ thi 15 phút tại {currentLabs[0]}.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: BẢNG ĐIỂM */}
+              {currentTab === 'grades' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm overflow-hidden">
+                  <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900">Bảng điểm học phần</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Trọng số: 10% TX + 20% TH + 20% GK + 50% CK • Đồng bộ trực tiếp từ sổ điểm giảng viên.
+                      </p>
+                    </div>
+                    <span className={`px-3 py-1 font-semibold text-xs rounded-full border self-start sm:self-center ${overallStats.rank.badge}`}>
+                      Điểm TB: {overallStats.avg !== null ? `${overallStats.avg.toFixed(1)} (${overallStats.rank.name})` : 'Chưa đủ điểm'}
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto custom-scroll">
+                    <table className="w-full text-[13px] text-left">
+                      <thead className="bg-slate-50 text-slate-500 text-xs font-semibold border-b border-slate-200">
+                        <tr>
+                          <th className="py-3 px-4">Học phần</th>
+                          <th className="py-3 px-2.5 text-center">TX (10%)</th>
+                          <th className="py-3 px-2.5 text-center">TH (20%)</th>
+                          <th className="py-3 px-2.5 text-center">GK (20%)</th>
+                          <th className="py-3 px-2.5 text-center">CK (50%)</th>
+                          <th className="py-3 px-3 text-center">Điểm TB</th>
+                          <th className="py-3 px-2.5 text-center">Điểm chữ</th>
+                          <th className="py-3 px-4 text-center">Kết quả</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {studentGrades.map((g, idx) => {
+                          const midVal = isValidScore(g.midterm) ? g.midterm : g.period;
+                          const avg = calcSubjectAvg(g);
+                          const rank = getRankInfo(avg);
+                          return (
+                            <tr key={g.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                              <td className="py-3 px-4 font-medium text-slate-900">{g.subject || g.subject_name || 'Học phần'}</td>
+                              <td className="py-3 px-2.5 text-center tabular-nums text-slate-700">{formatScore(g.oral)}</td>
+                              <td className="py-3 px-2.5 text-center tabular-nums text-slate-700">{formatScore(g.quiz)}</td>
+                              <td className="py-3 px-2.5 text-center tabular-nums text-slate-700">{formatScore(midVal)}</td>
+                              <td className="py-3 px-2.5 text-center tabular-nums font-semibold text-slate-900">{formatScore(g.final)}</td>
+                              <td className="py-3 px-3 text-center font-bold text-brand-600 tabular-nums text-sm">
+                                {avg !== null ? avg.toFixed(1) : '—'}
+                              </td>
+                              <td className="py-3 px-2.5 text-center font-semibold text-slate-800">{rank.letter}</td>
+                              <td className="py-3 px-4 text-center">
+                                {rank.passed === null ? (
+                                  <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 text-[11px] font-medium">Chưa đủ</span>
+                                ) : rank.passed ? (
+                                  <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">Đạt</span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 text-[11px] font-semibold">Học lại</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: CHUYÊN CẦN */}
+              {currentTab === 'attendance' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-200 gap-2">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900">Theo dõi chuyên cần &amp; Rèn luyện</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Cập nhật tự động khi giảng viên lưu điểm danh hoặc duyệt đơn nghỉ phép.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 self-start sm:self-center">
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold text-xs rounded-full">
+                        Tỷ lệ chuyên cần: {attendanceStats.rate}%
+                      </span>
+                      <span className={`px-3 py-1 font-semibold text-xs rounded-full border ${conductInfo.badge}`}>
+                        Rèn luyện: {conductInfo.rank} ({conductInfo.score}đ)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Thẻ đánh giá Điểm rèn luyện */}
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50 border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <Icon name="award" className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-sm text-slate-900">Điểm rèn luyện Học kỳ I</h3>
+                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${conductInfo.badge}`}>
+                            {conductInfo.rank}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          Đánh giá dựa trên tỷ lệ chuyên cần ({attendanceStats.rate}%), ý thức chấp hành nội quy &amp; hoạt động phong trào HueIC.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-left sm:text-right shrink-0">
+                      <div className="text-2xl font-bold text-blue-700 tabular-nums">{conductInfo.score} <span className="text-xs font-normal text-slate-500">/ 100 điểm</span></div>
+                      <span className="text-[11px] text-slate-400">Xác nhận bởi {advisorDisplayName}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                      <span className="text-xs text-slate-500">Có mặt</span>
+                      <p className="text-xl font-bold text-emerald-600 tabular-nums mt-0.5">{attendanceStats.PRESENT}</p>
+                    </div>
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                      <span className="text-xs text-slate-500">Đi trễ</span>
+                      <p className="text-xl font-bold text-purple-600 tabular-nums mt-0.5">{attendanceStats.LATE}</p>
+                    </div>
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                      <span className="text-xs text-slate-500">Vắng có phép</span>
+                      <p className="text-xl font-bold text-amber-600 tabular-nums mt-0.5">{attendanceStats.EXCUSED}</p>
+                    </div>
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                      <span className="text-xs text-slate-500">Không phép</span>
+                      <p className="text-xl font-bold text-red-600 tabular-nums mt-0.5">{attendanceStats.UNEXCUSED}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-xs uppercase tracking-wide text-slate-500 mb-2.5">
+                      Lịch sử điểm danh ({studentAttendance.length} buổi)
+                    </h3>
+                    <div className="space-y-2">
+                      {studentAttendance.map((att, i) => {
+                        const meta = getAttendanceMeta(att.status);
+                        return (
+                          <div key={att.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg border border-slate-200 hover:bg-slate-50/70 transition">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2 text-[13px]">
+                                <span className="font-semibold text-slate-900 tabular-nums">{formatDateVN(att.date)}</span>
+                                <span className="text-slate-300">•</span>
+                                <span className="text-slate-700 font-medium">{att.subject || 'Điểm danh lớp'}</span>
+                              </div>
+                              {att.note && <p className="text-xs text-slate-500 mt-0.5">{att.note}</p>}
+                            </div>
+                            <span className={`px-2.5 py-0.5 rounded-md text-xs font-semibold border self-start sm:self-center shrink-0 ${meta.cls}`}>
+                              {meta.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: ĐƠN XIN NGHỈ PHÉP */}
+              
+            {/* Tab: Lịch học cả 1 năm */}
+            {currentTab === 'schedule' && (
+              <div className="space-y-6 animate-fadeIn">
+                {/* Header Banner */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#1976D2] flex items-center justify-center shrink-0 border border-blue-100">
+                      <Icon name="schedule" className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-900">Thời khóa biểu &amp; Kế hoạch Đào tạo Cả Năm</h2>
+                        <span className="text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          Năm học 2026 – 2027
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Lớp: <strong className="text-slate-800">{studentClassName}</strong> • Ngành: <strong className="text-slate-800">{currentStudent.major || 'Đào tạo Cao đẳng'}</strong> • CVHT: <strong className="text-blue-700">{classAdvisor.full_name}</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => window.print()}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Icon name="copy" className="w-3.5 h-3.5" />
+                      <span>In / Tải lịch</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3 Thống kê thời lượng */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                    <div className="text-xs text-slate-500 font-medium">Tổng khối lượng đào tạo</div>
+                    <div className="text-xl font-bold text-slate-900 mt-1">34 Tín chỉ <span className="text-xs font-normal text-slate-400">/ 10 học phần</span></div>
+                    <div className="text-[11px] text-emerald-600 mt-0.5">HK I: 17 tín chỉ • HK II: 17 tín chỉ</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                    <div className="text-xs text-slate-500 font-medium">Tỷ lệ thực hành nghề nghiệp</div>
+                    <div className="text-xl font-bold text-blue-700 mt-1">65% <span className="text-xs font-normal text-slate-400">Thực hành Lab/Xưởng</span></div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">Tiêu chuẩn Kosen đào tạo kỹ năng thực chiến</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                    <div className="text-xs text-slate-500 font-medium">Địa điểm học tập chính</div>
+                    <div className="text-xl font-bold text-slate-900 mt-1">Cơ sở 1 HueIC</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">70 Nguyễn Huệ, TP. Huế (Phòng máy &amp; Khu thực hành)</div>
+                  </div>
+                </div>
+
+                {/* Khung Lịch học 2 Học kỳ */}
+                <div className="space-y-6">
+                  {/* HỌC KỲ I */}
+                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                    <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                        <h3 className="font-bold text-sm text-slate-900">Học kỳ I (15 tuần: 05/09/2026 – 15/01/2027)</h3>
+                        <span className="text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded">Đang học</span>
+                      </div>
+                      <span className="text-xs text-slate-500">17 Tín chỉ • 5 Học phần chuyên ngành</span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-slate-100/60 text-slate-600 font-semibold border-b border-slate-200">
+                            <th className="py-2.5 px-3 w-16 text-center">Thứ</th>
+                            <th className="py-2.5 px-3 w-28">Ca học / Tiết</th>
+                            <th className="py-2.5 px-3 min-w-[200px]">Tên học phần &amp; Mã môn</th>
+                            <th className="py-2.5 px-3 w-20 text-center">Số TC</th>
+                            <th className="py-2.5 px-3 min-w-[130px]">Phòng học / Lab</th>
+                            <th className="py-2.5 px-3 min-w-[160px]">Giảng viên phụ trách</th>
+                            <th className="py-2.5 px-3 w-24 text-center">Trạng thái</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-blue-700 bg-blue-50/30">Thứ 2</td>
+                            <td className="py-3 px-3 font-medium">Tiết 1 – 3<br/><span className="text-[10px] text-slate-400">07:00 – 09:25</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              {studentGrades[0]?.subject || 'Học phần Chuyên ngành 1'}
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">CNTT-26101</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">4</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-medium">Phòng máy A301</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">{classAdvisor.full_name}</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Đang diễn ra</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-blue-700 bg-blue-50/30">Thứ 3</td>
+                            <td className="py-3 px-3 font-medium">Tiết 4 – 6<br/><span className="text-[10px] text-slate-400">09:35 – 12:00</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              {studentGrades[1]?.subject || 'Học phần Chuyên ngành 2'}
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">CNTT-26102</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">3</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-medium">Phòng Lab B204</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">Thầy Hoàng Chí Dũng</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Đang diễn ra</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-blue-700 bg-blue-50/30">Thứ 4</td>
+                            <td className="py-3 px-3 font-medium">Tiết 7 – 9<br/><span className="text-[10px] text-slate-400">13:00 – 15:25</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              {studentGrades[2]?.subject || 'Học phần Chuyên ngành 3'}
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">CNTT-26103</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">3</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-medium">Giảng đường C102</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">{classAdvisor.full_name}</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Đang diễn ra</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-blue-700 bg-blue-50/30">Thứ 5</td>
+                            <td className="py-3 px-3 font-medium">Tiết 1 – 3<br/><span className="text-[10px] text-slate-400">07:00 – 09:25</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              {studentGrades[3]?.subject || 'Học phần Chuyên ngành 4'}
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">CNTT-26104</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">4</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-medium">Phòng Lab B201</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">Cô Trần Thị Bình</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Đang diễn ra</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-blue-700 bg-blue-50/30">Thứ 6</td>
+                            <td className="py-3 px-3 font-medium">Tiết 4 – 6<br/><span className="text-[10px] text-slate-400">09:35 – 12:00</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              {studentGrades[4]?.subject || 'Tiếng Anh chuyên ngành'}
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">AVCN-26105</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">3</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded font-medium">Phòng Ngoại ngữ E205</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">Cô Phan Thị Mai</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Đang diễn ra</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-blue-700 bg-blue-50/30">Thứ 7</td>
+                            <td className="py-3 px-3 font-medium">Tiết 1 – 4<br/><span className="text-[10px] text-slate-400">07:00 – 10:15</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              Thực hành Đồ án Doanh nghiệp &amp; Kỹ năng nghề
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">DA-26106</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">—</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded font-medium">Hội trường A HueIC</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">{classAdvisor.full_name}</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Định kỳ</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* HỌC KỲ II */}
+                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                    <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <h3 className="font-bold text-sm text-slate-900">Học kỳ II (15 tuần: 15/02/2027 – 15/06/2027)</h3>
+                        <span className="text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded">Kế hoạch</span>
+                      </div>
+                      <span className="text-xs text-slate-500">17 Tín chỉ • 5 Học phần nâng cao</span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-slate-100/60 text-slate-600 font-semibold border-b border-slate-200">
+                            <th className="py-2.5 px-3 w-16 text-center">Thứ</th>
+                            <th className="py-2.5 px-3 w-28">Ca học / Tiết</th>
+                            <th className="py-2.5 px-3 min-w-[200px]">Tên học phần &amp; Mã môn</th>
+                            <th className="py-2.5 px-3 w-20 text-center">Số TC</th>
+                            <th className="py-2.5 px-3 min-w-[130px]">Phòng học / Lab</th>
+                            <th className="py-2.5 px-3 min-w-[160px]">Giảng viên dự kiến</th>
+                            <th className="py-2.5 px-3 w-24 text-center">Trạng thái</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-amber-700 bg-amber-50/30">Thứ 2</td>
+                            <td className="py-3 px-3 font-medium">Tiết 1 – 3<br/><span className="text-[10px] text-slate-400">07:00 – 09:25</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              Lập trình Framework Nâng cao &amp; API
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">CNTT-26201</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">4</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-medium">Phòng máy A302</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">{classAdvisor.full_name}</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Sắp mở</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-amber-700 bg-amber-50/30">Thứ 3</td>
+                            <td className="py-3 px-3 font-medium">Tiết 4 – 6<br/><span className="text-[10px] text-slate-400">09:35 – 12:00</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              An toàn &amp; Bảo mật Thông tin Doanh nghiệp
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">CNTT-26202</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">3</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-medium">Phòng Lab B205</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">Thầy Hoàng Chí Dũng</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Sắp mở</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-amber-700 bg-amber-50/30">Thứ 4</td>
+                            <td className="py-3 px-3 font-medium">Tiết 1 – 3<br/><span className="text-[10px] text-slate-400">07:00 – 09:25</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              Phát triển Ứng dụng Di động Đa nền tảng
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">CNTT-26203</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">4</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-medium">Phòng Lab A301</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">{classAdvisor.full_name}</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Sắp mở</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-amber-700 bg-amber-50/30">Thứ 5</td>
+                            <td className="py-3 px-3 font-medium">Tiết 4 – 6<br/><span className="text-[10px] text-slate-400">09:35 – 12:00</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              Trí tuệ Nhân tạo &amp; Ứng dụng Thực tiễn
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">CNTT-26204</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">3</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded font-medium">Phòng Lab B202</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">Thầy Lê Văn Hùng</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Sắp mở</span></td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-3 text-center font-bold text-amber-700 bg-amber-50/30">Thứ 6</td>
+                            <td className="py-3 px-3 font-medium">Tiết 7 – 9<br/><span className="text-[10px] text-slate-400">13:00 – 15:25</span></td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">
+                              Kỹ năng Khởi nghiệp &amp; Đổi mới Sáng tạo
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">KN-26205</div>
+                            </td>
+                            <td className="py-3 px-3 text-center font-bold">3</td>
+                            <td className="py-3 px-3"><span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-medium">Giảng đường C104</span></td>
+                            <td className="py-3 px-3 font-medium text-slate-800">Cô Phan Thị Mai</td>
+                            <td className="py-3 px-3 text-center"><span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Sắp mở</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentTab === 'leaves' && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+                    <h2 className="text-base font-bold text-slate-900">Gửi đơn xin nghỉ phép</h2>
+                    <p className="text-xs text-slate-500 mt-0.5 mb-4">
+                      Đơn sẽ gửi trực tiếp đến {advisorDisplayName} để xem xét và cập nhật chuyên cần.
+                    </p>
+
+                    <form onSubmit={handleLeaveSubmit} className="space-y-3.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1">Từ ngày</label>
+                          <input
+                            type="date"
+                            value={leaveForm.startDate}
+                            onChange={e => setLeaveForm(prev => ({
+                              ...prev,
+                              startDate: e.target.value,
+                              endDate: prev.endDate < e.target.value ? e.target.value : prev.endDate
+                            }))}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-800 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1">Đến ngày</label>
+                          <input
+                            type="date"
+                            min={leaveForm.startDate}
+                            value={leaveForm.endDate}
+                            onChange={e => setLeaveForm(prev => ({ ...prev, endDate: e.target.value }))}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-800 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Lý do xin nghỉ</label>
+                        <textarea
+                          rows="3"
+                          value={leaveForm.reason}
+                          onChange={e => setLeaveForm(prev => ({ ...prev, reason: e.target.value }))}
+                          placeholder="Ví dụ: Bị sốt, cần đi khám bệnh tại phòng khám..."
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-800 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15"
+                          required
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg shadow-sm transition cursor-pointer"
+                      >
+                        Gửi đơn xin nghỉ phép
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Lịch sử đơn đã gửi */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                      <h3 className="font-semibold text-sm text-slate-900">Đơn đã gửi ({studentLeaves.length})</h3>
+                      <span className="text-xs text-slate-400">Cập nhật tự động</span>
+                    </div>
+
+                    {studentLeaves.length === 0 ? (
+                      <div className="py-6 text-center text-xs text-slate-400">
+                        Bạn chưa có đơn xin nghỉ phép nào.
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {studentLeaves.map(l => (
+                          <div key={l.id} className="p-3.5 rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div className="space-y-0.5">
+                              <div className="text-[13px] font-medium text-slate-900">{l.reason}</div>
+                              <div className="text-xs text-slate-500">
+                                Ngày nghỉ: <strong className="font-medium text-slate-700">{formatDateVN(l.start_date)}</strong>
+                                {l.end_date && l.end_date !== l.start_date ? ` → ${formatDateVN(l.end_date)}` : ''}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`px-2.5 py-0.5 rounded-md text-xs font-semibold border ${
+                                l.status === 'APPROVED'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : l.status === 'REJECTED'
+                                  ? 'bg-red-50 text-red-700 border-red-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}>
+                                {l.status === 'APPROVED' ? 'Đã duyệt' : l.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
+                              </span>
+                              {l.status === 'PENDING' && (
+                                <button
+                                  onClick={() => handleCancelLeave(l.id)}
+                                  className="px-2 py-0.5 text-xs text-slate-500 hover:text-red-600 font-medium cursor-pointer"
+                                >
+                                  Rút đơn
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: HỌC PHÍ & VIETQR */}
+              {currentTab === 'fees' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                  <div className="pb-3 border-b border-slate-100">
+                    <h2 className="text-base font-bold text-slate-900">Học phí & Thanh toán VietQR</h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Quét mã QR bằng ứng dụng ngân hàng để điền sẵn số tiền và nội dung nộp học phí.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                    <div className="md:col-span-7 space-y-3 text-[13px]">
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Mã sinh viên</span>
+                          <strong className="text-slate-900 font-mono">{currentStudent.student_code}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Họ và tên</span>
+                          <strong className="text-slate-900">{currentStudent.full_name}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Đợt thu</span>
+                          <strong className="text-slate-900">{dbData?.tuition?.semester || 'Học kỳ I (2026 - 2027)'}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Tài khoản thụ hưởng</span>
+                          <strong className="text-slate-900">MB Bank • 0902000001</strong>
+                        </div>
+                        <div className="flex justify-between pt-2.5 border-t border-slate-200 text-sm">
+                          <span className="font-semibold text-slate-800">Tổng học phí cần nộp</span>
+                          <strong className="text-brand-600 text-base tabular-nums">{tuitionAmount.toLocaleString('vi-VN')} VNĐ</strong>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-[11px] text-slate-500 font-medium">Nội dung chuyển khoản</div>
+                          <div className="font-mono text-xs font-semibold text-slate-900 truncate mt-0.5">{transferNote}</div>
+                        </div>
+                        <button
+                          onClick={() => handleCopyTransferInfo(transferNote)}
+                          className="px-3 py-1.5 bg-white border border-blue-200 hover:border-brand-600 text-brand-600 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        >
+                          <Icon name="copy" className="w-3.5 h-3.5" />
+                          <span>Sao chép</span>
+                        </button>
+                      </div>
+
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Lưu ý: Giữ đúng cú pháp mã sinh viên trong nội dung chuyển khoản để phòng Tài vụ tự động đối soát gạch nợ.
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-5 flex flex-col items-center justify-center p-4 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                      {!qrBroken ? (
+                        <img
+                          src={`https://api.vietqr.io/image/970422-0902000001-compact2.jpg?amount=${tuitionAmount}&addInfo=${encodeURIComponent(transferNote)}&accountName=TRUONG%20CAO%20DANG%20CONG%20NGHIEP%20HUE`}
+                          alt="Mã VietQR nộp học phí"
+                          onError={() => setQrBroken(true)}
+                          className="w-48 h-48 rounded-lg border border-slate-200 bg-white object-contain p-1.5"
+                        />
+                      ) : (
+                        <div className="w-48 h-48 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center p-4 text-xs text-slate-400">
+                          Không tải được mã QR (kiểm tra kết nối mạng). Vui lòng chuyển khoản thủ công theo thông tin bên trái.
+                        </div>
+                      )}
+                      <p className="text-xs font-semibold text-slate-800 mt-3">TRƯỜNG CĐ CÔNG NGHIỆP HUẾ</p>
+                      <span className="text-[11px] text-slate-500">Ngân hàng TMCP Quân đội (MB Bank)</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 6: TÀI LIỆU & FLASHCARD */}
+              {currentTab === 'lectures' && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900">Tài liệu môn học & Flashcard ôn tập</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">Chọn học phần để xem đề cương chương và lật thẻ ôn nhanh kiến thức trọng tâm.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                      {LECTURE_MODULES.map((m, idx) => {
+                        const selected = idx === activeModuleIdx;
+                        return (
+                          <button
+                            key={m.code}
+                            onClick={() => handleSelectModule(idx)}
+                            className={`p-3 rounded-xl border text-left transition cursor-pointer ${
+                              selected
+                                ? 'bg-blue-50 border-brand-600 shadow-sm'
+                                : 'bg-slate-50/70 border-slate-200 hover:bg-white'
+                            }`}
+                          >
+                            <span className="text-[11px] font-mono font-semibold text-brand-600">{m.code}</span>
+                            <div className="text-xs font-semibold text-slate-900 mt-1 line-clamp-2">{m.title}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
+                      {/* Danh mục bài học */}
+                      <div className="md:col-span-6 p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2.5">
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Nội dung chính ({activeModule.chapters.length} chương)
+                        </h3>
+                        <ul className="space-y-2 text-[13px] text-slate-700">
+                          {activeModule.chapters.map((ch, i) => (
+                            <li key={i} className="flex items-start gap-2.5 bg-white p-2.5 rounded-lg border border-slate-200/80">
+                              <span className="w-5 h-5 rounded-full bg-blue-50 text-brand-600 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                {i + 1}
+                              </span>
+                              <span>{ch}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Flashcard tương tác thật */}
+                      <div className="md:col-span-6 flex flex-col justify-between p-4 rounded-xl border border-slate-200 bg-white space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-slate-700">Flashcard ôn nhanh</span>
+                          <span className="text-slate-400">Thẻ {cardIdx + 1}/{activeModule.cards.length}</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setCardFlipped(f => !f)}
+                          className={`min-h-[160px] w-full p-5 rounded-xl border-2 text-left flex flex-col justify-between transition cursor-pointer ${
+                            cardFlipped
+                              ? 'bg-emerald-50/70 border-emerald-300'
+                              : 'bg-blue-50/60 border-blue-200 hover:border-brand-600'
+                          }`}
+                        >
+                          <span className={`text-[11px] font-semibold uppercase tracking-wide ${cardFlipped ? 'text-emerald-700' : 'text-brand-600'}`}>
+                            {cardFlipped ? 'Đáp án / Gợi nhớ' : 'Câu hỏi'}
+                          </span>
+                          <p className="text-sm font-medium text-slate-900 leading-relaxed my-2">
+                            {cardFlipped ? activeCard.back : activeCard.front}
+                          </p>
+                          <span className="text-[11px] text-slate-400">
+                            Nhấn vào thẻ để {cardFlipped ? 'xem lại câu hỏi' : 'lật xem đáp án'}
+                          </span>
+                        </button>
+
+                        <div className="flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => {
+                              setCardIdx(prev => (prev - 1 + activeModule.cards.length) % activeModule.cards.length);
+                              setCardFlipped(false);
+                            }}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-700 cursor-pointer"
+                          >
+                            ← Thẻ trước
+                          </button>
+                          <button
+                            onClick={() => setCardFlipped(f => !f)}
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"
+                          >
+                            Lật thẻ
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCardIdx(prev => (prev + 1) % activeModule.cards.length);
+                              setCardFlipped(false);
+                            }}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-700 cursor-pointer"
+                          >
+                            Thẻ sau →
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 7: LUYỆN THI TRẮC NGHIỆM */}
+              {currentTab === 'assessment' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-200 gap-3">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900">Luyện tập trắc nghiệm CNTT</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {quizSubmitted
+                          ? `Kết quả: đúng ${quizCorrectCount}/${QUIZ_BANK.length} câu (${Math.round((quizCorrectCount / QUIZ_BANK.length) * 100)}%). Xem giải thích bên dưới.`
+                          : `Đã chọn ${answeredCount}/${QUIZ_BANK.length} câu hỏi.`}
+                      </p>
+                    </div>
+                    {!quizSubmitted ? (
+                      <button
+                        onClick={handleQuizSubmit}
+                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg shadow-sm transition self-start sm:self-center cursor-pointer"
+                      >
+                        Nộp bài & Chấm điểm
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => { setQuizSubmitted(false); setQuizAnswers({}); }}
+                        className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-semibold rounded-lg transition self-start sm:self-center cursor-pointer"
+                      >
+                        Làm lại từ đầu
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    {QUIZ_BANK.map((q, idx) => {
+                      const chosen = quizAnswers[q.id];
+                      return (
+                        <div key={q.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-semibold text-[13px] text-slate-900 leading-relaxed">
+                              Câu {idx + 1}. {q.question}
+                            </p>
+                            <span className="text-[11px] bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded shrink-0">
+                              {q.subject}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[13px]">
+                            {q.options.map((opt, oIdx) => {
+                              const isChosen = chosen === oIdx;
+                              let style = 'bg-white border-slate-200 text-slate-700 hover:border-slate-300';
+                              if (quizSubmitted) {
+                                if (oIdx === q.answer) style = 'bg-emerald-50 border-emerald-400 text-emerald-800 font-semibold';
+                                else if (isChosen) style = 'bg-red-50 border-red-300 text-red-700';
+                              } else if (isChosen) {
+                                style = 'bg-blue-50 border-brand-600 text-brand-700 font-semibold';
+                              }
+                              return (
+                                <button
+                                  key={oIdx}
+                                  type="button"
+                                  disabled={quizSubmitted}
+                                  onClick={() => setQuizAnswers(prev => ({ ...prev, [q.id]: oIdx }))}
+                                  className={`p-2.5 rounded-lg border text-left transition cursor-pointer ${style}`}
+                                >
+                                  <span className="font-mono text-xs mr-1.5 opacity-70">{String.fromCharCode(65 + oIdx)}.</span>
+                                  {opt}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {quizSubmitted && (
+                            <div className="p-3 rounded-lg bg-white border border-slate-200 text-xs text-slate-600 leading-relaxed">
+                              <strong className={chosen === q.answer ? 'text-emerald-700' : 'text-amber-700'}>
+                                {chosen === q.answer ? 'Chính xác: ' : 'Giải thích: '}
+                              </strong>
+                              {q.explanation}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 8: HỎI ĐÁP HỌC VỤ */}
+              {currentTab === 'assistant' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm flex flex-col h-[580px]">
+                  <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-xl">
+                    <div>
+                      <h2 className="font-semibold text-sm text-slate-900">Hỏi đáp học vụ nhanh</h2>
+                      <p className="text-xs text-slate-500">Tra cứu trực tiếp từ dữ liệu điểm, chuyên cần và học phí của bạn</p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+                      Sẵn sàng
+                    </span>
+                  </div>
+
+                  <div className="flex-1 p-4 overflow-y-auto space-y-3 custom-scroll bg-[#F8FAFC]">
+                    {chatMessages.map(m => {
+                      const isUser = m.sender === 'user';
+                      return (
+                        <div key={m.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
+                            isUser
+                              ? 'bg-brand-600 text-white rounded-br-sm shadow-sm'
+                              : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm shadow-sm'
+                          }`}>
+                            {m.text}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {isTyping && (
+                      <div className="text-xs text-slate-400">Đang tra cứu dữ liệu...</div>
+                    )}
+                    <div ref={chatBottomRef} />
+                  </div>
+
+                  <div className="p-3 border-t border-slate-200 bg-white rounded-b-xl space-y-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        'Điểm trung bình của mình bao nhiêu?',
+                        'Kiểm tra chuyên cần',
+                        'Trạng thái đơn nghỉ phép',
+                        'Học phí kỳ này'
+                      ].map((q, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => sendChatQuestion(q)}
+                          className="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-brand-600 transition cursor-pointer"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+
+                    <form
+                      onSubmit={e => {
+                        e.preventDefault();
+                        sendChatQuestion(chatInput);
+                      }}
+                      className="flex gap-2"
+                    >
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={e => setChatInput(e.target.value)}
+                        placeholder="Nhập câu hỏi về điểm, chuyên cần, học phí..."
+                        className="flex-1 px-3.5 py-2 rounded-lg border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!chatInput.trim() || isTyping}
+                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Icon name="send" className="w-3.5 h-3.5" />
+                        <span>Gửi</span>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
+
+          {/* Thông báo nổi */}
+          {toast && (
+            <div
+              role="status"
+              className={`fixed bottom-5 right-5 z-50 px-4 py-3 bg-white rounded-xl shadow-lg border border-slate-200 border-l-4 max-w-sm ${
+                toast.type === 'error'
+                  ? 'border-l-red-600'
+                  : toast.type === 'info'
+                  ? 'border-l-brand-600'
+                  : 'border-l-emerald-600'
+              }`}
+            >
+              <div className="text-[13px] font-semibold text-slate-900">{toast.title}</div>
+              <p className="text-xs text-slate-500 mt-0.5">{toast.message}</p>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-400 mt-auto">
+            © 2026 Trường Cao đẳng Công nghiệp Huế (HueIC) — Cổng thông tin Sinh viên • SchoolPulse
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<StudentApp />);
+  </script>
+</body>
+</html>

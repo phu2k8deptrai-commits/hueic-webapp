@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SchoolPulse – Cổng Quản trị & Ban Giám hiệu – Trường CĐ Công nghiệp Huế (HueIC)</title>
+
+  <meta name="theme-color" content="#1976D2">
+  <link rel="icon" type="image/png" href="assets/hueic_logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="db_data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    if (window.HueIC && window.HueIC.requireAuth) {
+      window.HueIC.requireAuth('ADMIN');
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              600: '#1976D2',
+              700: '#1565C0',
+            },
+            edu: {
+              primary: '#1976D2',
+              primaryHover: '#1565C0',
+              primaryBright: '#007AFF',
+              primarySoft: '#EBF4FF',
+              bg: '#F4F6F9',
+              surface: '#FFFFFF',
+              surfaceSub: '#F8FAFC',
+              border: '#E5E7EB',
+              textMain: '#1C1E21',
+              textSecondary: '#6B7280',
+              textMuted: '#9CA3AF',
+              success: '#16A34A',
+              successBg: '#F0FDF4',
+              warning: '#EA580C',
+              warningBg: '#FFF7ED',
+              danger: '#DC2626',
+              dangerBg: '#FEF2F2',
+              purple: '#7C3AED',
+              purpleBg: '#F5F3FF'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --edu-primary: #1976D2;
+      --edu-primary-hover: #1565C0;
+      --edu-primary-bright: #007AFF;
+      --edu-primary-soft: #EBF4FF;
+
+      --edu-bg: #F4F6F9;
+      --edu-surface: #FFFFFF;
+      --edu-surface-sub: #F8FAFC;
+      --edu-border: #E5E7EB;
+      --edu-text-main: #1C1E21;
+      --edu-text-secondary: #6B7280;
+      --edu-text-muted: #9CA3AF;
+
+      --edu-success: #16A34A;        --edu-success-bg: #F0FDF4;
+      --edu-warning: #EA580C;        --edu-warning-bg: #FFF7ED;
+      --edu-danger: #DC2626;         --edu-danger-bg: #FEF2F2;
+      --edu-purple: #7C3AED;         --edu-purple-bg: #F5F3FF;
+    }
+    body {
+      background-color: #F4F6F9;
+      color: #1F2937;
+      font-family: 'Be Vietnam Pro', -apple-system, sans-serif;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+  <div id="root" class="flex-1 flex flex-col"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    const FACULTY_OVERVIEW = [
+      { code: 'CNTT-KTS', name: 'Khoa Công nghệ Thông tin – Kinh tế số', students: 480, teachers: 32, attendanceRate: 98.8, badge: 'bg-blue-50 text-brand-600 border-blue-100', programs: 'CNTT, Kỹ thuật Phần mềm, Mạng máy tính & ATTT, Thương mại điện tử, Marketing số' },
+      { code: 'CK-OTO', name: 'Khoa Cơ khí – Ô tô', students: 420, teachers: 30, attendanceRate: 97.9, badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', programs: 'Công nghệ Kỹ thuật Ô tô, Cắt gọt kim loại (CNC), Cơ điện tử, Công nghệ Hàn' },
+      { code: 'D-DT', name: 'Khoa Điện – Điện tử', students: 380, teachers: 27, attendanceRate: 98.5, badge: 'bg-amber-50 text-amber-700 border-amber-200', programs: 'Điện công nghiệp (KOSEN), Điều khiển & Tự động hóa, Điện tử công nghiệp & IoT' },
+      { code: 'NL', name: 'Khoa Nhiệt lạnh', students: 210, teachers: 18, attendanceRate: 98.2, badge: 'bg-cyan-50 text-cyan-700 border-cyan-200', programs: 'Kỹ thuật Máy lạnh & Điều hòa không khí, Cơ điện lạnh công nghiệp' },
+      { code: 'KHCB', name: 'Khoa Khoa học cơ bản', students: 0, teachers: 24, attendanceRate: 99.1, badge: 'bg-purple-50 text-purple-700 border-purple-200', programs: 'Toán - Tin cơ sở, Ngoại ngữ (Anh - Nhật), Lý luận chính trị, GD Thể chất & GDQP' }
+    ];
+
+    const HUEIC_ORGANIZATION = {
+      leadership: [
+        { title: 'Chủ tịch Hội đồng trường', name: 'ThS. Lê Văn Luận', role: 'Chủ tịch HĐT, phụ trách đào tạo, QLSV & HTQT', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+        { title: 'Quyền Hiệu trưởng', name: 'ThS. Trần Hữu Châu Giang', role: 'Phụ trách chung toàn diện, chiến lược & quy hoạch', badge: 'bg-blue-50 text-blue-700 border-blue-200' },
+        { title: 'Phó Hiệu trưởng', name: 'ThS. Lê Văn Luận', role: 'Chủ tịch HĐT, phụ trách đào tạo & công tác HSSV', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        { title: 'Phó Hiệu trưởng', name: 'ThS. Hoàng Minh Tuấn', role: 'Phụ trách quản trị - đầu tư, cơ sở vật chất & NCKH', badge: 'bg-amber-50 text-amber-700 border-amber-200' }
+      ],
+      departments: [
+        { code: 'ĐT', name: 'Phòng Đào tạo', contact: '0234.3834.701', desc: 'Quản lý chương trình, kế hoạch đào tạo, tổ chức tuyển sinh và cấp phát văn bằng tốt nghiệp.' },
+        { code: 'HCTH', name: 'Phòng Hành chính – Tổng hợp', contact: '0234.3822.559', desc: 'Quản lý tổ chức cán bộ, nhân sự, chế độ chính sách, văn thư lưu trữ và pháp chế.' },
+        { code: 'QTĐT', name: 'Phòng Quản trị – Đầu tư', contact: '0234.3838.123', desc: 'Quản lý cơ sở vật chất, đất đai, nhà xưởng thực hành, giảng đường và các dự án đầu tư.' }
+      ],
+      centers: [
+        { code: 'TT-TS', name: 'Trung tâm Tuyển sinh – Dịch vụ & CTSV', desc: 'Tư vấn tuyển sinh, ngày hội việc làm, học bổng doanh nghiệp, ký túc xá và hỗ trợ sinh viên.' },
+        { code: 'TT-TV', name: 'Trung tâm Thư viện', desc: 'Phục vụ không gian đọc hiện đại, giáo trình học liệu điện tử và thư viện số phục vụ NCKH.' },
+        { code: 'BAN-CĐS', name: 'Ban Chuyển đổi số', desc: 'Vận hành hạ tầng CNTT, hệ thống đào tạo số, Cổng SchoolPulse và bảo đảm an toàn dữ liệu.' }
+      ],
+      societies: [
+        { name: 'Đảng bộ Trường CĐ Công nghiệp Huế', role: 'Lãnh đạo toàn diện mọi mặt hoạt động' },
+        { name: 'Công đoàn Cơ sở Trường', role: 'Chăm lo quyền lợi, đời sống CB-GV-NV' },
+        { name: 'Đoàn Thanh niên – Hội Sinh viên', role: 'Xung kích tình nguyện, rèn luyện kỹ năng sinh viên' }
+      ]
+    };
+
+    const FALLBACK_DB = {
+      users: [
+        { id: 1, role: 'ADMIN', full_name: 'TS. Phạm Văn Quân', title: 'Hiệu trưởng HueIC' },
+        { id: 2, role: 'TEACHER', full_name: 'Nguyễn Văn An', department: 'Khoa Công nghệ Thông tin', class_id: 1, class_name: 'CĐ CNTT K48A', email: 'an.nv@hueic.edu.vn', phone: '0902.000.001', status: 'Đang giảng dạy' },
+        { id: 4, role: 'TEACHER', full_name: 'Trần Thị Bình', department: 'Khoa Điện – Điện tử', class_id: 2, class_name: 'CĐ Điện CN K48B', email: 'binh.tt@hueic.edu.vn', phone: '0902.000.002', status: 'Đang giảng dạy' },
+        { id: 5, role: 'TEACHER', full_name: 'Hoàng Chí Dũng', department: 'Khoa Công nghệ Thông tin', class_id: 3, class_name: 'Trưởng bộ môn Phần mềm', email: 'dung.hc@hueic.edu.vn', phone: '0902.000.003', status: 'Đang giảng dạy' }
+      ],
+      students: [
+        { id: 1, student_code: 'HUEIC2601', full_name: 'Nguyễn Hoàng Long', class_id: 1, class_name: 'CĐ CNTT K48A', gender: 'Nam' },
+        { id: 2, student_code: 'HUEIC2602', full_name: 'Trần Nam Khánh', class_id: 1, class_name: 'CĐ CNTT K48A', gender: 'Nam' },
+        { id: 3, student_code: 'HUEIC2603', full_name: 'Đoàn Anh Khoa', class_id: 1, class_name: 'CĐ CNTT K48A', gender: 'Nam' },
+        { id: 4, student_code: 'HUEIC2604', full_name: 'Lê Thị Thu Thảo', class_id: 1, class_name: 'CĐ CNTT K48A', gender: 'Nữ' },
+        { id: 5, student_code: 'HUEIC2605', full_name: 'Phạm Minh Quân', class_id: 1, class_name: 'CĐ CNTT K48A', gender: 'Nam' }
+      ],
+      grades: [
+        { id: 101, student_id: 1, subject: 'Lập trình Web & Mobile', oral: 8.5, quiz: 8.0, midterm: 8.5, final: 9.0 },
+        { id: 102, student_id: 2, subject: 'Lập trình Web & Mobile', oral: 7.5, quiz: 7.0, midterm: 7.5, final: 8.0 },
+        { id: 103, student_id: 3, subject: 'Lập trình Web & Mobile', oral: 6.5, quiz: 6.0, midterm: 6.5, final: 6.0 },
+        { id: 104, student_id: 4, subject: 'Lập trình Web & Mobile', oral: 9.0, quiz: 9.0, midterm: 8.5, final: 9.5 },
+        { id: 105, student_id: 5, subject: 'Lập trình Web & Mobile', oral: 5.5, quiz: 5.0, midterm: 4.5, final: 5.0 }
+      ],
+      attendance: [],
+      leaves: [],
+      announcements: [
+        {
+          id: 1,
+          title: 'Lịch thi kết thúc học phần Học kỳ I (Năm học 2026 – 2027)',
+          tag: 'HỌC VỤ',
+          created_at: '2026-11-19',
+          author_name: 'Phòng Đào tạo HueIC',
+          content: 'Nhà trường thông báo lịch thi kết thúc học phần các lớp Cao đẳng K48. Đề nghị các khoa phổ biến tới sinh viên và phụ huynh.',
+          read_by: []
+        }
+      ],
+      tuition: { amount: 2850000, semester: 'Học kỳ I (2026 – 2027)' },
+      audits: []
+    };
+
+    function getTodayISO() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      return new Date(now.getTime() - offset * 60000).toISOString().split('T')[0];
+    }
+
+    function formatDateVN(isoDate) {
+      if (!isoDate) return '—';
+      const parts = String(isoDate).split('-');
+      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : isoDate;
+    }
+
+    function getNowTimeLabel() {
+      const now = new Date();
+      return now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + formatDateVN(getTodayISO());
+    }
+
+    function getVnInitials(fullName) {
+      if (!fullName) return 'QT';
+      const cleaned = fullName.replace(/^(PGS\.|GS\.|TS\.|ThS\.|Thầy|Cô|GV\.)\s*/gi, '').trim();
+      const words = cleaned.split(/\s+/).filter(Boolean);
+      if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+      return (words[words.length - 2][0] + words[words.length - 1][0]).toUpperCase();
+    }
+
+    function isValidScore(v) {
+      return v !== '' && v !== null && v !== undefined && !Number.isNaN(Number(v));
+    }
+
+    function calcSubjectAvg(g) {
+      if (!g) return null;
+      const mid = isValidScore(g.midterm) ? g.midterm : g.period;
+      if (![g.oral, g.quiz, mid, g.final].every(isValidScore)) return null;
+      const val = Number(g.oral) * 0.1 + Number(g.quiz) * 0.2 + Number(mid) * 0.2 + Number(g.final) * 0.5;
+      return Math.round(val * 10) / 10;
+    }
+
+    function getStoredDb() {
+      const saved = localStorage.getItem('sll_local_db');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.students)) {
+            if (typeof window !== 'undefined' && window.INITIAL_DB && Array.isArray(window.INITIAL_DB.students) && parsed.students.length < window.INITIAL_DB.students.length) {
+              try { localStorage.setItem('sll_local_db', JSON.stringify(window.INITIAL_DB)); } catch (e) {}
+              return window.INITIAL_DB;
+            }
+            return parsed;
+          }
+        } catch (e) {}
+      }
+      if (typeof window !== 'undefined' && window.INITIAL_DB) {
+        try {
+          localStorage.setItem('sll_local_db', JSON.stringify(window.INITIAL_DB));
+        } catch (e) {}
+        return window.INITIAL_DB;
+      }
+      try {
+        localStorage.setItem('sll_local_db', JSON.stringify(FALLBACK_DB));
+      } catch (e) {}
+      return FALLBACK_DB;
+    }
+
+    function Icon({ name, className = 'w-4 h-4' }) {
+      const props = {
+        className,
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 1.85,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+        viewBox: '0 0 24 24'
+      };
+      switch (name) {
+        case 'dashboard':
+          return <svg {...props}><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>;
+        case 'teachers':
+          return <svg {...props}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+        case 'organization':
+          return <svg {...props}><rect x="3" y="3" width="7" height="6" rx="1"/><rect x="14" y="3" width="7" height="6" rx="1"/><rect x="8.5" y="15" width="7" height="6" rx="1"/><line x1="6.5" y1="9" x2="6.5" y2="12"/><line x1="17.5" y1="9" x2="17.5" y2="12"/><line x1="6.5" y1="12" x2="17.5" y2="12"/><line x1="12" y1="12" x2="12" y2="15"/></svg>;
+        case 'classes':
+          return <svg {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+        case 'fees':
+          return <svg {...props}><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>;
+        case 'announcements':
+          return <svg {...props}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+        case 'excel':
+          return <svg {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+        case 'students':
+          return <svg {...props}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+        case 'plus':
+          return <svg {...props}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+        case 'trash':
+          return <svg {...props}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
+        case 'audits':
+          return <svg {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+        case 'search':
+          return <svg {...props}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+        case 'logout':
+          return <svg {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+        case 'upload':
+          return <svg {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
+        case 'x':
+          return <svg {...props}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        case 'check':
+          return <svg {...props}><polyline points="20 6 9 17 4 12"/></svg>;
+        default:
+          return null;
+      }
+    }
+
+    function AdminApp() {
+      const [dbData, setDbData] = useState(() => getStoredDb());
+      const [currentTab, setCurrentTab] = useState('dashboard');
+      const [logoBroken, setLogoBroken] = useState(false);
+      const [toast, setToast] = useState(null);
+
+      // State cho Quản lý Sinh viên (Thêm & Xóa sinh viên toàn trường)
+      const [showAddStudent, setShowAddStudent] = useState(false);
+      const [studentSearch, setStudentSearch] = useState('');
+      const [studentClassFilter, setStudentClassFilter] = useState('ALL');
+      const [adminStudentForm, setAdminStudentForm] = useState({
+        class_id: 1,
+        student_code: '',
+        full_name: '',
+        gender: 'Nam',
+        dob: '2006-01-01',
+        parent_name: '',
+        parent_phone: ''
+      });
+
+      const handleDeleteStudentAdmin = (id, name, code, className) => {
+        if (!window.confirm(`Ban Giám hiệu / Quản trị viên có chắc chắn muốn xóa sinh viên ${name} (${code} - ${className}) khỏi toàn bộ hệ thống đào tạo? Mọi dữ liệu điểm số, chuyên cần và học phí sẽ bị thu hồi.`)) {
+          return;
+        }
+
+        const nextStudents = (dbData?.students || []).filter(s => s.id !== id);
+        const nextGrades = (dbData?.grades || []).filter(g => g.student_id !== id);
+        const nextAtt = (dbData?.attendance || []).filter(a => a.student_id !== id);
+        const nextFees = (dbData?.fees || []).filter(f => f.student_id !== id);
+
+        const newAudit = {
+          id: Date.now(),
+          action: 'DELETE_STUDENT',
+          user: 'BGH / Quản trị hệ thống',
+          detail: `Đã xóa sinh viên ${name} (${code}) khỏi lớp ${className}`,
+          time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' Hôm nay'
+        };
+
+        persistDb({
+          ...FALLBACK_DB,
+          ...dbData,
+          students: nextStudents,
+          grades: nextGrades,
+          attendance: nextAtt,
+          fees: nextFees,
+          audits: [newAudit, ...(dbData?.audits || [])]
+        });
+
+        showToast('Đã xóa sinh viên', `Đã xóa sinh viên ${name} (${code}) thành công.`, 'info');
+      };
+
+      const handleSaveStudentAdmin = (e) => {
+        e.preventDefault();
+        const code = (adminStudentForm.student_code || '').trim().toUpperCase();
+        const name = (adminStudentForm.full_name || '').trim();
+
+        if (!code || !name) {
+          showToast('Thiếu thông tin', 'Vui lòng nhập đầy đủ Mã sinh viên và Họ tên!', 'error');
+          return;
+        }
+
+        const isDuplicate = (dbData?.students || []).some(s => s.student_code === code);
+        if (isDuplicate) {
+          showToast('Trùng mã sinh viên', `Mã sinh viên ${code} đã tồn tại trong hệ thống! Vui lòng chọn mã khác.`, 'error');
+          return;
+        }
+
+        const classMap = {
+          1: { name: 'CĐ CNTT K48A', dept: 'Khoa Công nghệ Thông tin', teacher: 'Thầy Nguyễn Văn An', phone: '0902000001' },
+          2: { name: 'CĐ CNTT K48B', dept: 'Khoa Công nghệ Thông tin', teacher: 'Thầy Hoàng Chí Dũng', phone: '0902000003' },
+          3: { name: 'CĐ Điện CN K48A', dept: 'Khoa Điện – Điện tử', teacher: 'Cô Trần Thị Bình', phone: '0902000002' },
+          4: { name: 'CĐ Cơ khí Ô tô K48A', dept: 'Khoa Cơ khí Chế tạo', teacher: 'Thầy Lê Văn Hùng', phone: '0902000004' },
+          5: { name: 'CĐ Thiết kế Đồ họa K48A', dept: 'Khoa Mỹ thuật & Thiết kế', teacher: 'Cô Phan Thị Mai', phone: '0902000005' }
+        };
+
+        const targetCls = classMap[adminStudentForm.class_id] || classMap[1];
+        const newId = Date.now();
+        const newStudent = {
+          id: newId,
+          student_code: code,
+          full_name: name,
+          gender: adminStudentForm.gender || 'Nam',
+          dob: adminStudentForm.dob || '2006-01-01',
+          class_id: Number(adminStudentForm.class_id),
+          class_name: targetCls.name,
+          major: targetCls.name,
+          department: targetCls.dept,
+          parent_name: adminStudentForm.parent_name.trim() || 'Phụ huynh ' + name,
+          parent_phone: adminStudentForm.parent_phone.trim() || '090300' + String(newId).slice(-4),
+          teacher_name: targetCls.teacher,
+          teacher_phone: targetCls.phone
+        };
+
+        // Tạo 5 điểm mặc định
+        const newGrades = [1, 2, 3, 4, 5].map((sub, sIdx) => ({
+          id: newId + sIdx,
+          student_id: newId,
+          semester_id: 1,
+          subject: ['Lập trình Web & Mobile', 'Cơ sở dữ liệu nâng cao', 'Kiến trúc máy tính & HĐH', 'Phân tích thiết kế HTTT', 'Tiếng Anh chuyên ngành CNTT'][sIdx] || 'Môn ' + (sIdx + 1),
+          oral: 8.0,
+          quiz: 8.0,
+          period: 8.0,
+          midterm: 8.0,
+          final: 8.5
+        }));
+
+        const newAudit = {
+          id: Date.now() + 1,
+          action: 'ADD_STUDENT',
+          user: 'BGH / Quản trị hệ thống',
+          detail: `Thêm sinh viên mới ${name} (${code}) vào lớp ${targetCls.name}`,
+          time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' Hôm nay'
+        };
+
+        const newAtt = {
+          id: newId,
+          student_id: newId,
+          class_id: Number(adminStudentForm.class_id),
+          date: '2026-11-20',
+          status: 'PRESENT',
+          note: 'Đúng giờ'
+        };
+        const newFee = {
+          id: newId,
+          student_id: newId,
+          title: 'Học phí Học kỳ I (2026 – 2027)',
+          amount: Number(dbData?.tuition?.amount || 5250000),
+          status: 'PAID',
+          due_date: '2026-11-30'
+        };
+
+        const nextStudents = [newStudent, ...(dbData?.students || [])];
+        const nextGrades = [...newGrades, ...(dbData?.grades || [])];
+        const nextAtt = [newAtt, ...(dbData?.attendance || [])];
+        const nextFees = [newFee, ...(dbData?.fees || [])];
+
+        persistDb({
+          ...FALLBACK_DB,
+          ...dbData,
+          students: nextStudents,
+          grades: nextGrades,
+          attendance: nextAtt,
+          fees: nextFees,
+          audits: [newAudit, ...(dbData?.audits || [])]
+        });
+
+        setShowAddStudent(false);
+        showToast('Thêm sinh viên thành công', `Đã thêm sinh viên ${name} (${code}) vào lớp ${targetCls.name}.`, 'success');
+      };
+
+      // State cho form thêm giảng viên
+      const [showAddTeacher, setShowAddTeacher] = useState(false);
+      const [teacherSearch, setTeacherSearch] = useState('');
+      const [teacherForm, setTeacherForm] = useState({
+        full_name: '',
+        department: 'Khoa Công nghệ Thông tin',
+        class_name: '',
+        email: '',
+        phone: ''
+      });
+
+      // State cho cấu hình học phí đồng bộ
+      const [tuitionInput, setTuitionInput] = useState(() => String(dbData?.tuition?.amount || 2850000));
+      const [semesterInput, setSemesterInput] = useState(() => dbData?.tuition?.semester || 'Học kỳ I (2026 – 2027)');
+
+      // State cho thông báo
+      const [newAnn, setNewAnn] = useState({ title: '', content: '', tag: 'HỌC VỤ' });
+      const [deletingAnnId, setDeletingAnnId] = useState(null);
+
+      const toastTimerRef = useRef(null);
+      const fileInputRef = useRef(null);
+
+      useEffect(() => {
+        const onStorage = (e) => {
+          if (e.key === 'sll_local_db' && e.newValue) {
+            try {
+              const parsed = JSON.parse(e.newValue);
+              setDbData(parsed);
+              if (parsed?.tuition?.amount) setTuitionInput(String(parsed.tuition.amount));
+              if (parsed?.tuition?.semester) setSemesterInput(parsed.tuition.semester);
+            } catch (err) {}
+          }
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+      }, []);
+
+      const showToast = (title, message, type = 'success') => {
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        setToast({ title, message, type });
+        toastTimerRef.current = setTimeout(() => setToast(null), 3400);
+      };
+
+      const currentAdmin = useMemo(() => {
+        return dbData?.users?.find(u => u.role === 'ADMIN') || FALLBACK_DB.users[0];
+      }, [dbData?.users]);
+
+      const persistWithAudit = (patch, auditAction, auditTarget) => {
+        const base = { ...FALLBACK_DB, ...dbData };
+        const nextAudits = auditAction
+          ? [
+              {
+                id: Date.now(),
+                user: currentAdmin.full_name,
+                action: auditAction,
+                target: auditTarget,
+                time: getNowTimeLabel()
+              },
+              ...(base.audits || [])
+            ].slice(0, 50)
+          : (base.audits || []);
+
+        const nextDb = { ...base, ...patch, audits: nextAudits };
+        setDbData(nextDb);
+        try {
+          localStorage.setItem('sll_local_db', JSON.stringify(nextDb));
+        } catch (e) {
+          showToast('Lỗi lưu trữ', 'Không thể ghi dữ liệu vào bộ nhớ trình duyệt.', 'error');
+        }
+      };
+
+      const students = useMemo(() => {
+        return Array.isArray(dbData?.students) && dbData.students.length > 0
+          ? dbData.students
+          : FALLBACK_DB.students;
+      }, [dbData?.students]);
+
+      const teachers = useMemo(() => {
+        const list = (dbData?.users || []).filter(u => u.role === 'TEACHER');
+        return list.length > 0 ? list : FALLBACK_DB.users.filter(u => u.role === 'TEACHER');
+      }, [dbData?.users]);
+
+      const filteredTeachers = useMemo(() => {
+        const kw = teacherSearch.trim().toLowerCase();
+        if (!kw) return teachers;
+        return teachers.filter(t =>
+          (t.full_name || '').toLowerCase().includes(kw) ||
+          (t.department || '').toLowerCase().includes(kw) ||
+          (t.class_name || '').toLowerCase().includes(kw)
+        );
+      }, [teachers, teacherSearch]);
+
+      const announcements = useMemo(() => {
+        return Array.isArray(dbData?.announcements) ? dbData.announcements : FALLBACK_DB.announcements;
+      }, [dbData?.announcements]);
+
+      // Tính toán chỉ số thật cho từng sinh viên từ grades và attendance
+      const studentMetrics = useMemo(() => {
+        const grades = dbData?.grades || [];
+        const attendance = dbData?.attendance || [];
+        return students.map(s => {
+          const sGrades = grades.filter(g => g.student_id === s.id).map(calcSubjectAvg).filter(v => v !== null);
+          const avg = sGrades.length > 0
+            ? Math.round((sGrades.reduce((a, b) => a + b, 0) / sGrades.length) * 10) / 10
+            : null;
+
+          const sAtt = attendance.filter(a => a.student_id === s.id);
+          const presentOrLate = sAtt.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length;
+          const attRate = sAtt.length > 0 ? Math.round((presentOrLate / sAtt.length) * 100) : null;
+
+          return { ...s, avg, attRate, attCount: sAtt.length };
+        });
+      }, [students, dbData?.grades, dbData?.attendance]);
+
+      // Tổng hợp các lớp đang có dữ liệu thật trong hệ thống
+      const liveClassStats = useMemo(() => {
+        const grouped = {};
+        studentMetrics.forEach(s => {
+          const clsName = s.class_name || 'CĐ CNTT K48A';
+          if (!grouped[clsName]) grouped[clsName] = [];
+          grouped[clsName].push(s);
+        });
+        return Object.entries(grouped).map(([className, members]) => {
+          const validAvgs = members.map(m => m.avg).filter(v => v !== null);
+          const validRates = members.map(m => m.attRate).filter(v => v !== null);
+          const advisor = teachers.find(t => t.class_name === className);
+          return {
+            className,
+            count: members.length,
+            advisorName: advisor?.full_name || 'Chưa phân công',
+            avgScore: validAvgs.length > 0 ? (validAvgs.reduce((a, b) => a + b, 0) / validAvgs.length).toFixed(1) : '—',
+            attRate: validRates.length > 0 ? `${Math.round(validRates.reduce((a, b) => a + b, 0) / validRates.length)}%` : 'Chưa điểm danh'
+          };
+        });
+      }, [studentMetrics, teachers]);
+
+      const pendingLeavesCount = useMemo(() => {
+        return (dbData?.leaves || []).filter(l => l.status === 'PENDING').length;
+      }, [dbData?.leaves]);
+
+      // Tổng hợp nhật ký thực tế từ DB
+      const auditLogs = useMemo(() => {
+        const logs = [...(dbData?.audits || [])];
+
+        (dbData?.leaves || []).slice(0, 5).forEach(l => {
+          logs.push({
+            id: `leave-${l.id}`,
+            user: l.student_name,
+            action: l.status === 'APPROVED' ? 'ĐƠN NGHỈ PHÉP ĐÃ DUYỆT' : l.status === 'REJECTED' ? 'ĐƠN NGHỈ PHÉP TỪ CHỐI' : 'GỬI ĐƠN NGHỈ PHÉP',
+            target: `${l.class_name || 'K48A'} (${formatDateVN(l.start_date)})`,
+            time: formatDateVN(l.start_date)
+          });
+        });
+
+        announcements.slice(0, 3).forEach(a => {
+          logs.push({
+            id: `ann-${a.id}`,
+            user: a.author_name || 'Ban Giám hiệu',
+            action: 'PHÁT THÔNG BÁO',
+            target: a.title,
+            time: formatDateVN(a.created_at)
+          });
+        });
+
+        if (logs.length === 0) {
+          logs.push({
+            id: 'init-1',
+            user: currentAdmin.full_name,
+            action: 'ĐĂNG NHẬP HỆ THỐNG',
+            target: 'Cổng Quản trị SchoolPulse',
+            time: getNowTimeLabel()
+          });
+        }
+        return logs;
+      }, [dbData?.audits, dbData?.leaves, announcements, currentAdmin.full_name]);
+
+      const handleAddTeacher = (e) => {
+        e.preventDefault();
+        if (!teacherForm.full_name.trim()) {
+          showToast('Thiếu thông tin', 'Vui lòng nhập họ và tên giảng viên.', 'error');
+          return;
+        }
+        const newTeacher = {
+          id: Date.now(),
+          role: 'TEACHER',
+          full_name: teacherForm.full_name.trim(),
+          department: teacherForm.department,
+          class_id: Date.now(),
+          class_name: teacherForm.class_name.trim() || 'Giảng dạy chuyên môn',
+          email: teacherForm.email.trim() || 'gv@hueic.edu.vn',
+          phone: teacherForm.phone.trim() || 'Chưa cập nhật',
+          status: 'Đang giảng dạy'
+        };
+
+        const currentUsers = Array.isArray(dbData?.users) && dbData.users.length > 0 ? dbData.users : FALLBACK_DB.users;
+        persistWithAudit(
+          { users: [...currentUsers, newTeacher] },
+          'PHÂN CÔNG GIẢNG VIÊN',
+          `${newTeacher.full_name} — ${newTeacher.class_name}`
+        );
+
+        setTeacherForm({ full_name: '', department: 'Khoa Công nghệ Thông tin', class_name: '', email: '', phone: '' });
+        setShowAddTeacher(false);
+        showToast('Đã thêm giảng viên', `Phân công thành công ${newTeacher.full_name}.`, 'success');
+      };
+
+      const handleSaveTuitionConfig = (e) => {
+        e.preventDefault();
+        const amount = Number(String(tuitionInput).replace(/[^0-9]/g, ''));
+        if (!amount || amount < 100000) {
+          showToast('Số tiền không hợp lệ', 'Vui lòng nhập mức học phí hợp lệ (VNĐ).', 'error');
+          return;
+        }
+
+        persistWithAudit(
+          { tuition: { ...(dbData?.tuition || {}), amount, semester: semesterInput.trim() || 'Học kỳ I (2026 – 2027)' } },
+          'CẬP NHẬT MỨC HỌC PHÍ',
+          `${amount.toLocaleString('vi-VN')} VNĐ (${semesterInput})`
+        );
+        showToast('Đã cập nhật học phí', 'Mức học phí và mã VietQR trên cổng Sinh viên & Phụ huynh đã tự động đồng bộ.', 'success');
+      };
+
+      const handlePostAnnouncement = (e) => {
+        e.preventDefault();
+        if (!newAnn.title.trim() || !newAnn.content.trim()) {
+          showToast('Thiếu thông tin', 'Vui lòng nhập đầy đủ tiêu đề và nội dung thông báo.', 'error');
+          return;
+        }
+
+        const newPost = {
+          id: Date.now(),
+          title: newAnn.title.trim(),
+          content: newAnn.content.trim(),
+          tag: newAnn.tag,
+          created_at: getTodayISO(),
+          author_name: currentAdmin.full_name,
+          read_by: []
+        };
+
+        persistWithAudit(
+          { announcements: [newPost, ...announcements] },
+          'PHÁT THÔNG BÁO TOÀN TRƯỜNG',
+          newPost.title
+        );
+        setNewAnn({ title: '', content: '', tag: 'HỌC VỤ' });
+        showToast('Đã phát thông báo', 'Thông báo đã hiển thị trên cổng Phụ huynh và Sinh viên.', 'success');
+      };
+
+      const handleDeleteAnnouncement = (id) => {
+        const target = announcements.find(a => a.id === id);
+        const updated = announcements.filter(a => a.id !== id);
+        persistWithAudit(
+          { announcements: updated },
+          'GỠ THÔNG BÁO',
+          target?.title || `ID #${id}`
+        );
+        setDeletingAnnId(null);
+        showToast('Đã gỡ thông báo', 'Thông báo đã được xóa khỏi hệ thống.', 'info');
+      };
+
+      const handleExportSchoolReport = () => {
+        try {
+          const rows = studentMetrics.map((s, idx) => ({
+            'STT': idx + 1,
+            'Mã SV': s.student_code,
+            'Họ và tên': s.full_name,
+            'Lớp': s.class_name || 'CĐ CNTT K48A',
+            'Giới tính': s.gender || 'Nam',
+            'Điểm TB hiện tại': s.avg !== null ? s.avg : 'Chưa đủ điểm',
+            'Tỷ lệ chuyên cần': s.attRate !== null ? `${s.attRate}% (${s.attCount} buổi)` : 'Chưa có dữ liệu',
+            'Học phí kỳ hiện tại (VNĐ)': Number(dbData?.tuition?.amount || 2850000)
+          }));
+
+          const ws = XLSX.utils.json_to_sheet(rows);
+          ws['!cols'] = [
+            { wch: 5 }, { wch: 13 }, { wch: 24 }, { wch: 16 },
+            { wch: 10 }, { wch: 18 }, { wch: 22 }, { wch: 22 }
+          ];
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Bao_Cao_SchoolPulse');
+          const fileName = `Bao_Cao_Tong_Hop_SchoolPulse_${getTodayISO()}.xlsx`;
+          XLSX.writeFile(wb, fileName);
+
+          persistWithAudit({}, 'XUẤT BÁO CÁO EXCEL', `${fileName} (${rows.length} sinh viên)`);
+          showToast('Xuất Excel thành công', `Đã tải xuống tệp ${fileName}`, 'success');
+        } catch (e) {
+          showToast('Lỗi xuất file', e.message, 'error');
+        }
+      };
+
+      const handleDownloadTemplate = () => {
+        const sample = [
+          { 'Mã SV': 'HUEIC2606', 'Họ và tên': 'Võ Minh Triết', 'Lớp': 'CĐ CNTT K48A', 'Giới tính': 'Nam', 'Phụ huynh': 'Võ Văn Hùng', 'SĐT Phụ huynh': '0905.112.233' },
+          { 'Mã SV': 'HUEIC2607', 'Họ và tên': 'Nguyễn Ngọc Hân', 'Lớp': 'CĐ CNTT K48A', 'Giới tính': 'Nữ', 'Phụ huynh': 'Nguyễn Thị Mai', 'SĐT Phụ huynh': '0914.334.455' }
+        ];
+        const ws = XLSX.utils.json_to_sheet(sample);
+        ws['!cols'] = [{ wch: 13 }, { wch: 22 }, { wch: 16 }, { wch: 10 }, { wch: 20 }, { wch: 16 }];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Mau_Nhap_SV');
+        XLSX.writeFile(wb, 'Mau_Danh_Sach_Sinh_Vien_SchoolPulse.xlsx');
+      };
+
+      const handleImportStudentsFile = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonRows = XLSX.utils.sheet_to_json(firstSheet);
+
+            if (!jsonRows.length) {
+              showToast('File trống', 'Không tìm thấy dòng dữ liệu nào trong file Excel.', 'error');
+              return;
+            }
+
+            const existingCodes = new Set(students.map(s => String(s.student_code).toUpperCase()));
+            const added = [];
+
+            jsonRows.forEach((row, idx) => {
+              const code = String(row['Mã SV'] || row['student_code'] || row['MSV'] || '').trim();
+              const name = String(row['Họ và tên'] || row['full_name'] || row['Họ tên'] || '').trim();
+              if (!name) return;
+              const finalCode = code || `HUEIC${Date.now().toString().slice(-4)}${idx}`;
+              if (existingCodes.has(finalCode.toUpperCase())) return;
+              existingCodes.add(finalCode.toUpperCase());
+
+              added.push({
+                id: Date.now() + idx,
+                student_code: finalCode,
+                full_name: name,
+                class_id: 1,
+                class_name: String(row['Lớp'] || row['class_name'] || 'CĐ CNTT K48A').trim(),
+                gender: String(row['Giới tính'] || row['gender'] || 'Nam').trim(),
+                parent_name: String(row['Phụ huynh'] || row['parent_name'] || '').trim(),
+                parent_phone: String(row['SĐT Phụ huynh'] || row['parent_phone'] || '').trim()
+              });
+            });
+
+            if (added.length === 0) {
+              showToast('Không có sinh viên mới', 'Các mã sinh viên trong file đã tồn tại hoặc thiếu cột "Họ và tên".', 'info');
+              return;
+            }
+
+            persistWithAudit(
+              { students: [...students, ...added] },
+              'NHẬP EXCEL SINH VIÊN',
+              `Thêm ${added.length} sinh viên từ ${file.name}`
+            );
+            showToast('Nhập dữ liệu thành công', `Đã thêm ${added.length} sinh viên mới vào hệ thống.`, 'success');
+          } catch (err) {
+            showToast('Lỗi đọc file Excel', 'File không đúng định dạng .xlsx / .csv.', 'error');
+          } finally {
+            e.target.value = '';
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      };
+
+      const navItems = [
+        { id: 'dashboard', label: 'Tổng quan', icon: 'dashboard' },
+        { id: 'organization', label: 'Cơ cấu tổ chức HueIC', icon: 'organization' },
+        { id: 'teachers', label: `Giảng viên (${teachers.length})`, icon: 'teachers' },
+        { id: 'classes', label: 'Khoa & Lớp học', icon: 'classes' },
+        { id: 'students', label: `Sinh viên (${(dbData?.students || []).length})`, icon: 'students' },
+        { id: 'fees', label: 'Học phí & Tài chính', icon: 'fees' },
+        { id: 'announcements', label: `Thông báo (${announcements.length})`, icon: 'announcements' },
+        { id: 'excel', label: 'Nhập / Xuất Excel', icon: 'excel' },
+        { id: 'audits', label: 'Nhật ký hệ thống', icon: 'audits' }
+      ];
+
+      const currentTuitionNum = Number(dbData?.tuition?.amount || 2850000);
+      const totalEstimatedFee = 1250 * currentTuitionNum;
+      const collectedFee = Math.round(totalEstimatedFee * 0.942);
+      const remainingFee = totalEstimatedFee - collectedFee;
+
+      return (
+        <div className="flex flex-col min-h-screen">
+          {/* Header */}
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {!logoBroken ? (
+                  <img
+                    src="assets/hueic_logo.png"
+                    alt="HueIC"
+                    onError={() => setLogoBroken(true)}
+                    className="w-9 h-9 object-contain rounded-md shrink-0"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-md bg-brand-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                    SP
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="font-bold text-sm sm:text-[15px] text-slate-900 truncate">
+                      SchoolPulse – Quản trị & Ban Giám hiệu
+                    </h1>
+                    <span className="hidden md:inline-block bg-blue-50 text-brand-600 text-[11px] font-semibold px-2 py-0.5 rounded border border-blue-100">
+                      Điều hành học vụ
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 truncate hidden sm:block">
+                    SchoolPulse • Trường Cao đẳng Công nghiệp Huế • Năm học 2026 – 2027
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0">
+                <div className="hidden sm:block text-right leading-tight">
+                  <div className="text-[13px] font-semibold text-slate-800">{currentAdmin.full_name}</div>
+                  <div className="text-[11px] text-slate-500">{currentAdmin.title || 'Hiệu trưởng Nhà trường'}</div>
+                </div>
+                <div
+                  className="w-8 h-8 rounded-full bg-blue-50 text-brand-600 font-bold flex items-center justify-center text-xs border border-blue-200"
+                  title={currentAdmin.full_name}
+                >
+                  {getVnInitials(currentAdmin.full_name)}
+                </div>
+                <button
+                  onClick={() => { if (window.HueIC && window.HueIC.logout) { window.HueIC.logout(); } else { sessionStorage.clear(); window.location.href = 'index.html'; } }}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 text-slate-600 hover:text-red-600 text-xs font-medium transition flex items-center gap-1.5 cursor-pointer"
+                  title="Đăng xuất khỏi hệ thống"
+                >
+                  <Icon name="logout" className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Đăng xuất</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Menu ngang cho màn hình nhỏ */}
+            <div className="lg:hidden border-t border-slate-100 overflow-x-auto custom-scroll">
+              <div className="flex px-3 py-1.5 gap-1 min-w-max">
+                {navItems.map(tab => {
+                  const active = currentTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setCurrentTab(tab.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition cursor-pointer ${
+                        active ? 'bg-blue-50 text-brand-600 font-semibold' : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Icon name={tab.icon} className="w-3.5 h-3.5" />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </header>
+
+          {/* Khung nội dung chính */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            {/* Sidebar Desktop */}
+            <aside className="hidden lg:block lg:col-span-3 space-y-4 sticky top-20">
+              <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-sm">
+                <div className="px-2.5 pt-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Quản trị hệ thống
+                </div>
+                <nav className="space-y-1">
+                  {navItems.map(tab => {
+                    const active = currentTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setCurrentTab(tab.id)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] transition text-left cursor-pointer ${
+                          active
+                            ? 'bg-blue-50 text-brand-600 font-semibold'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                        }`}
+                      >
+                        <Icon name={tab.icon} className={`w-4 h-4 ${active ? 'text-brand-600' : 'text-slate-400'}`} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Thống kê dữ liệu đồng bộ */}
+              <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-sm text-xs space-y-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Dữ liệu trên hệ thống</div>
+                <div className="flex justify-between py-1 border-b border-slate-100">
+                  <span className="text-slate-500">Hồ sơ SV đã đồng bộ</span>
+                  <strong className="text-brand-600 tabular-nums">{students.length} SV</strong>
+                </div>
+                <div className="flex justify-between py-1 border-b border-slate-100">
+                  <span className="text-slate-500">Tài khoản giảng viên</span>
+                  <strong className="text-slate-800 tabular-nums">{teachers.length} GV</strong>
+                </div>
+                <div className="flex justify-between py-1 border-b border-slate-100">
+                  <span className="text-slate-500">Đơn nghỉ chờ duyệt</span>
+                  <strong className="text-amber-600 tabular-nums">{pendingLeavesCount} đơn</strong>
+                </div>
+                <div className="flex justify-between pt-1">
+                  <span className="text-slate-500">Thông báo đang hiển thị</span>
+                  <strong className="text-slate-800 tabular-nums">{announcements.length} tin</strong>
+                </div>
+              </div>
+            </aside>
+
+            {/* Khu vực nội dung */}
+            <main className="lg:col-span-9 space-y-4">
+              {/* TAB 1: TỔNG QUAN */}
+              {currentTab === 'dashboard' && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+                    <div className="pb-4 border-b border-slate-100">
+                      <span className="text-[11px] font-semibold bg-blue-50 text-brand-600 px-2.5 py-0.5 rounded border border-blue-100">
+                        Báo cáo điều hành • {dbData?.tuition?.semester || 'Học kỳ I (2026 – 2027)'}
+                      </span>
+                      <h2 className="text-lg font-bold text-slate-900 mt-1.5">Tổng quan hoạt động đào tạo HueIC</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Số liệu quy mô toàn trường (05 khoa chuyên môn) kết hợp theo dõi trực tiếp các lớp đã triển khai sổ liên lạc.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+                      <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70">
+                        <span className="text-xs text-slate-500">Quy mô toàn trường</span>
+                        <p className="text-xl font-bold text-slate-900 tabular-nums mt-1">1.490 <span className="text-xs font-normal text-slate-500">SV</span></p>
+                      </div>
+                      <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70">
+                        <span className="text-xs text-slate-500">Chuyên cần bình quân</span>
+                        <p className="text-xl font-bold text-emerald-600 tabular-nums mt-1">98.5%</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70">
+                        <span className="text-xs text-slate-500">Tiến độ học phí</span>
+                        <p className="text-xl font-bold text-amber-600 tabular-nums mt-1">94.2%</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70">
+                        <span className="text-xs text-slate-500">Đội ngũ giảng viên</span>
+                        <p className="text-xl font-bold text-brand-600 tabular-nums mt-1">131 <span className="text-xs font-normal text-slate-500">GV</span></p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {FACULTY_OVERVIEW.map(f => (
+                      <div key={f.code} className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <span className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded border font-mono ${f.badge}`}>
+                            {f.code}
+                          </span>
+                          <h3 className="font-semibold text-sm text-slate-900 mt-2">{f.name}</h3>
+                          <p className="text-xs text-slate-500 mt-1">{f.students > 0 ? `${f.students} sinh viên` : 'Bộ môn đại cương'} • {f.teachers} giảng viên</p>
+                        </div>
+                        <div className="mt-3 pt-2.5 border-t border-slate-100 flex justify-between text-xs">
+                          <span className="text-slate-500">Chuyên cần tháng</span>
+                          <strong className="text-emerald-600 tabular-nums">{f.attendanceRate}%</strong>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB CƠ CẤU TỔ CHỨC HUEIC */}
+              {currentTab === 'organization' && (
+                <div className="space-y-4 animate-fadeIn">
+                  {/* Banner Đầu trang */}
+                  <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <img src="assets/hueic_logo.png" alt="HueIC Logo" className="w-14 h-14 object-contain rounded-xl bg-white p-1.5 shadow-sm" />
+                        <div>
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-200 text-xs font-medium border border-blue-400/30 mb-1">
+                            <span>Bộ Công Thương • Est. 1899 (Hơn 125 năm truyền thống)</span>
+                          </div>
+                          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Cơ cấu Tổ chức Trường Cao Đẳng Công Nghiệp Huế</h2>
+                          <p className="text-xs text-blue-200/80 mt-1">
+                            Số 70 Nguyễn Huệ, Phường Vĩnh Ninh, TP. Huế • Hotline: (0234) 3822 559 • Website: hueic.edu.vn
+                          </p>
+                        </div>
+                      </div>
+                      <a
+                        href="https://hueic.edu.vn"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-white transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Cổng thông tin hueic.edu.vn</span>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* 1. KHỐI LÃNH ĐẠO TRƯỜNG & HỘI ĐỒNG TRƯỜNG */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                    <div className="pb-3 border-b border-slate-100 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-brand-600"></span>
+                          Khối Lãnh đạo Trường & Hội đồng Trường
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Cơ quan quyết nghị chiến lược và Ban Giám hiệu điều hành hoạt động toàn diện</p>
+                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-brand-600 border border-blue-200">
+                        Nhiệm kỳ 2020 – 2025 / 2025 – 2030
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                      {HUEIC_ORGANIZATION.leadership.map((lead, idx) => (
+                        <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-blue-300 hover:shadow-sm transition space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${lead.badge}`}>
+                              {lead.title}
+                            </span>
+                          </div>
+                          <div className="font-bold text-sm text-slate-900">{lead.name}</div>
+                          <p className="text-xs text-slate-600 leading-relaxed">{lead.role}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. KHỐI CÁC KHOA CHUYÊN MÔN ĐÀO TẠO (5 KHOA CHÍNH THỨC) */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                    <div className="pb-3 border-b border-slate-100 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                          Các Khoa Chuyên Môn Đào Tạo (05 Khoa)
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Tổ chức quản trị đào tạo theo chuẩn kiểm định chất lượng GDNN và mô hình KOSEN</p>
+                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Quy mô đào tạo: 1.490+ SV
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {FACULTY_OVERVIEW.map(f => (
+                        <div key={f.code} className="p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-600 hover:shadow-md transition flex flex-col justify-between space-y-3">
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border font-mono ${f.badge}`}>
+                                {f.code}
+                              </span>
+                              <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                                Chuyên cần: {f.attendanceRate}%
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-900 mt-2.5">{f.name}</h4>
+                            <div className="mt-2 text-xs text-slate-600">
+                              <span className="text-slate-400 block text-[11px] font-medium">Ngành/Bộ môn đào tạo:</span>
+                              <p className="mt-0.5 leading-relaxed text-slate-700 font-medium">{f.programs}</p>
+                            </div>
+                          </div>
+                          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                            <span>Quy mô: <strong className="text-slate-800">{f.students > 0 ? `${f.students} SV` : 'Bộ môn đại cương'}</strong></span>
+                            <span>Đội ngũ: <strong className="text-slate-800">{f.teachers} Giảng viên</strong></span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 3. KHỐI CÁC PHÒNG CHỨC NĂNG (03 PHÒNG) */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                    <div className="pb-3 border-b border-slate-100 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
+                          Các Phòng Chức Năng (03 Phòng)
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Tham mưu và giúp việc cho Ban Giám hiệu thực hiện công tác quản lý chuyên trách</p>
+                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                        Khối Tham mưu Quản lý
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {HUEIC_ORGANIZATION.departments.map((dept, idx) => (
+                        <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-amber-300 hover:shadow-sm transition space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded border border-amber-200">
+                              {dept.code}
+                            </span>
+                            <span className="text-xs text-slate-500 font-mono flex items-center gap-1">
+                              Hotline: {dept.contact}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-sm text-slate-900">{dept.name}</h4>
+                          <p className="text-xs text-slate-600 leading-relaxed">{dept.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4. KHỐI TRUNG TÂM, BAN CHỨC NĂNG & ĐOÀN THỂ */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Các Trung tâm & Ban */}
+                    <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-3.5">
+                      <div className="pb-3 border-b border-slate-100">
+                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                          Trung tâm & Ban Chuyên trách (03 Đơn vị)
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Phục vụ học tập, hỗ trợ sinh viên và hiện đại hóa hạ tầng số</p>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {HUEIC_ORGANIZATION.centers.map((c, idx) => (
+                          <div key={idx} className="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 flex items-start gap-3">
+                            <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-mono font-bold shrink-0">
+                              {c.code}
+                            </span>
+                            <div>
+                              <div className="text-xs font-bold text-slate-800">{c.name}</div>
+                              <div className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{c.desc}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tổ chức Đoàn thể */}
+                    <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-3.5 flex flex-col justify-between">
+                      <div>
+                        <div className="pb-3 border-b border-slate-100">
+                          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                            Tổ chức Chính trị – Xã hội & Đoàn thể
+                          </h3>
+                          <p className="text-xs text-slate-500 mt-0.5">Hệ thống đoàn thể chính trị trực thuộc Trường Cao đẳng Công nghiệp Huế</p>
+                        </div>
+
+                        <div className="space-y-2.5 mt-3.5">
+                          {HUEIC_ORGANIZATION.societies.map((s, idx) => (
+                            <div key={idx} className="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 flex items-start gap-3">
+                              <span className="w-2 h-2 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                              <div>
+                                <div className="text-xs font-bold text-slate-800">{s.name}</div>
+                                <div className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{s.role}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Cổng đào tạo & Sổ liên lạc: <strong className="text-brand-600">SchoolPulse HueIC</strong></span>
+                        <a href="https://hueic.edu.vn" target="_blank" rel="noreferrer" className="text-brand-600 hover:underline font-medium">
+                          hueic.edu.vn ↗
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: QUẢN LÝ GIẢNG VIÊN */}
+              {currentTab === 'teachers' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm overflow-hidden">
+                  <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900">Đội ngũ giảng viên & Cố vấn học tập</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">Quản lý tài khoản và phân công phụ trách lớp.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <Icon name="search" className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={teacherSearch}
+                          onChange={e => setTeacherSearch(e.target.value)}
+                          placeholder="Tìm giảng viên, khoa..."
+                          className="pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-800 outline-none focus:border-brand-600 w-44 sm:w-52"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setShowAddTeacher(v => !v)}
+                        className="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg shadow-sm transition shrink-0 cursor-pointer"
+                      >
+                        {showAddTeacher ? 'Đóng biểu mẫu' : '+ Thêm giảng viên'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {showAddTeacher && (
+                    <form onSubmit={handleAddTeacher} className="p-4 sm:p-5 bg-blue-50/40 border-b border-slate-200 space-y-3">
+                      <div className="text-xs font-semibold text-slate-800">Phân công giảng viên mới</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input
+                          type="text"
+                          required
+                          placeholder="Họ và tên (VD: ThS. Lê Minh Đức)"
+                          value={teacherForm.full_name}
+                          onChange={e => setTeacherForm(prev => ({ ...prev, full_name: e.target.value }))}
+                          className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-brand-600"
+                        />
+                        <select
+                          value={teacherForm.department}
+                          onChange={e => setTeacherForm(prev => ({ ...prev, department: e.target.value }))}
+                          className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-brand-600"
+                        >
+                          <option>Khoa Công nghệ Thông tin</option>
+                          <option>Khoa Cơ khí Chế tạo</option>
+                          <option>Khoa Điện – Điện tử</option>
+                        </select>
+                        <input
+                          type="text"
+                          placeholder="Lớp chủ nhiệm (VD: CĐ CNTT K48B)"
+                          value={teacherForm.class_name}
+                          onChange={e => setTeacherForm(prev => ({ ...prev, class_name: e.target.value }))}
+                          className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-brand-600"
+                        />
+                        <input
+                          type="email"
+                          placeholder="Email (@hueic.edu.vn)"
+                          value={teacherForm.email}
+                          onChange={e => setTeacherForm(prev => ({ ...prev, email: e.target.value }))}
+                          className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-brand-600"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Số điện thoại"
+                          value={teacherForm.phone}
+                          onChange={e => setTeacherForm(prev => ({ ...prev, phone: e.target.value }))}
+                          className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-brand-600"
+                        />
+                        <button
+                          type="submit"
+                          className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg shadow-sm transition cursor-pointer"
+                        >
+                          Lưu phân công
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  <div className="divide-y divide-slate-100">
+                    {filteredTeachers.map(t => (
+                      <div key={t.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-blue-50 text-brand-600 font-bold text-xs flex items-center justify-center border border-blue-200 shrink-0">
+                            {getVnInitials(t.full_name)}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm text-slate-900">{t.full_name}</div>
+                            <div className="text-xs text-slate-500">
+                              {t.class_name ? `CVHT ${t.class_name}` : 'Giảng viên'} • {t.department || 'Khoa Công nghệ Thông tin'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+                          <span>{t.email || 'gv@hueic.edu.vn'}</span>
+                          <span className="font-mono tabular-nums text-slate-500">{t.phone || '0902.000.001'}</span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium text-[11px]">
+                            {t.status || 'Đang công tác'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {filteredTeachers.length === 0 && (
+                      <div className="py-8 text-center text-xs text-slate-400">
+                        Không tìm thấy giảng viên phù hợp.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: KHOA & LỚP HỌC */}
+              {currentTab === 'classes' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                  <div className="pb-3 border-b border-slate-100">
+                    <h2 className="text-base font-bold text-slate-900">Giám sát lớp học đang hoạt động trên hệ thống</h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Điểm trung bình và chuyên cần được tổng hợp trực tiếp từ dữ liệu giảng viên đã nhập.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {liveClassStats.map(cls => (
+                      <div key={cls.className} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="font-semibold text-sm text-slate-900">Lớp {cls.className}</h3>
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">
+                            Chuyên cần: {cls.attRate}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600">
+                          Cố vấn học tập: <strong className="font-medium text-slate-800">{cls.advisorName}</strong> • Sĩ số hồ sơ: {cls.count} SV
+                        </p>
+                        <div className="pt-2.5 border-t border-slate-200/80 flex justify-between text-xs">
+                          <span className="text-slate-500">Điểm TB các môn đã nhập</span>
+                          <strong className="text-brand-600 tabular-nums">{cls.avgScore === '—' ? 'Chưa có' : `${cls.avgScore}/10`}</strong>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              
+                {/* TAB: QUẢN LÝ SINH VIÊN (CRUD) */}
+                {currentTab === 'students' && (
+                  <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm overflow-hidden space-y-4 p-5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between pb-3.5 border-b border-slate-200 gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-bold text-slate-900">Danh sách sinh viên toàn trường</h2>
+                          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-brand-600 border border-blue-200 text-xs font-semibold">
+                            {(dbData?.students || []).length} sinh viên
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Quản lý hồ sơ, thêm mới và xóa sinh viên thuộc 5 khoa chuyên ngành đào tạo.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Bộ lọc lớp */}
+                        <select
+                          value={studentClassFilter}
+                          onChange={e => setStudentClassFilter(e.target.value)}
+                          className="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 outline-none focus:border-brand-600"
+                        >
+                          <option value="ALL">Tất cả các lớp (5 lớp)</option>
+                          <option value="CĐ CNTT K48A">CĐ CNTT K48A</option>
+                          <option value="CĐ CNTT K48B">CĐ CNTT K48B</option>
+                          <option value="CĐ Điện CN K48A">CĐ Điện CN K48A</option>
+                          <option value="CĐ Cơ khí Ô tô K48A">CĐ Cơ khí Ô tô K48A</option>
+                          <option value="CĐ Thiết kế Đồ họa K48A">CĐ Thiết kế Đồ họa K48A</option>
+                        </select>
+
+                        {/* Ô tìm kiếm */}
+                        <div className="relative w-48 sm:w-56">
+                          <Icon name="search" className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            value={studentSearch}
+                            onChange={e => setStudentSearch(e.target.value)}
+                            placeholder="Mã SV hoặc họ tên..."
+                            className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-800 outline-none focus:border-brand-600"
+                          />
+                        </div>
+
+                        {/* Nút Thêm sinh viên */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextNum = (dbData?.students || []).length + 1;
+                            const suggestedCode = 'HUEIC26' + String(nextNum).padStart(2, '0');
+                            setAdminStudentForm({
+                              class_id: 1,
+                              student_code: suggestedCode,
+                              full_name: '',
+                              gender: 'Nam',
+                              dob: '2006-01-01',
+                              parent_name: '',
+                              parent_phone: ''
+                            });
+                            setShowAddStudent(true);
+                          }}
+                          className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                        >
+                          <Icon name="plus" className="w-3.5 h-3.5" />
+                          <span>Thêm sinh viên</span>
+                        </button>
+
+                        {/* Modal Thêm sinh viên mới toàn trường */}
+                        {showAddStudent && (
+                          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+                            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
+                              <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-200 flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-xs">
+                                    <Icon name="plus" className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-bold text-sm sm:text-base text-slate-900">Thêm sinh viên mới</h3>
+                                    <p className="text-xs text-slate-500">Bổ sung hồ sơ sinh viên vào hệ thống đào tạo HueIC</p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowAddStudent(false)}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition cursor-pointer"
+                                >
+                                  <Icon name="x" className="w-5 h-5" />
+                                </button>
+                              </div>
+
+                              <form onSubmit={handleSaveStudentAdmin} className="p-5 space-y-4 text-xs">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                  <div>
+                                    <label className="block font-semibold text-slate-700 mb-1">Lớp đào tạo <span className="text-rose-500">*</span></label>
+                                    <select
+                                      value={adminStudentForm.class_id}
+                                      onChange={e => setAdminStudentForm(prev => ({ ...prev, class_id: Number(e.target.value) }))}
+                                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600"
+                                    >
+                                      <option value={1}>CĐ CNTT K48A (Khoa CNTT)</option>
+                                      <option value={2}>CĐ CNTT K48B (Khoa CNTT)</option>
+                                      <option value={3}>CĐ Điện CN K48A (Khoa Điện)</option>
+                                      <option value={4}>CĐ Cơ khí Ô tô K48A (Khoa Cơ khí)</option>
+                                      <option value={5}>CĐ Thiết kế Đồ họa K48A (Khoa Đồ họa)</option>
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <label className="block font-semibold text-slate-700 mb-1">Mã sinh viên <span className="text-rose-500">*</span></label>
+                                    <input
+                                      type="text"
+                                      value={adminStudentForm.student_code}
+                                      onChange={e => setAdminStudentForm(prev => ({ ...prev, student_code: e.target.value.toUpperCase() }))}
+                                      placeholder="VD: HUEIC26101"
+                                      required
+                                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 font-mono font-semibold outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 uppercase"
+                                    />
+                                  </div>
+
+                                  <div className="sm:col-span-2">
+                                    <label className="block font-semibold text-slate-700 mb-1">Họ và tên sinh viên <span className="text-rose-500">*</span></label>
+                                    <input
+                                      type="text"
+                                      value={adminStudentForm.full_name}
+                                      onChange={e => setAdminStudentForm(prev => ({ ...prev, full_name: e.target.value }))}
+                                      placeholder="Ví dụ: Nguyễn Văn Hùng"
+                                      required
+                                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block font-semibold text-slate-700 mb-1">Giới tính</label>
+                                    <select
+                                      value={adminStudentForm.gender}
+                                      onChange={e => setAdminStudentForm(prev => ({ ...prev, gender: e.target.value }))}
+                                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600"
+                                    >
+                                      <option value="Nam">Nam</option>
+                                      <option value="Nữ">Nữ</option>
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <label className="block font-semibold text-slate-700 mb-1">Ngày sinh</label>
+                                    <input
+                                      type="date"
+                                      value={adminStudentForm.dob}
+                                      onChange={e => setAdminStudentForm(prev => ({ ...prev, dob: e.target.value }))}
+                                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block font-semibold text-slate-700 mb-1">Họ tên Phụ huynh</label>
+                                    <input
+                                      type="text"
+                                      value={adminStudentForm.parent_name}
+                                      onChange={e => setAdminStudentForm(prev => ({ ...prev, parent_name: e.target.value }))}
+                                      placeholder="Ví dụ: Nguyễn Văn Hưng"
+                                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block font-semibold text-slate-700 mb-1">Số điện thoại Phụ huynh</label>
+                                    <input
+                                      type="text"
+                                      value={adminStudentForm.parent_phone}
+                                      onChange={e => setAdminStudentForm(prev => ({ ...prev, parent_phone: e.target.value }))}
+                                      placeholder="Ví dụ: 0903123456"
+                                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 font-mono"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowAddStudent(false)}
+                                    className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium rounded-lg transition cursor-pointer"
+                                  >
+                                    Hủy bỏ
+                                  </button>
+                                  <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                                  >
+                                    <Icon name="check" className="w-4 h-4" />
+                                    <span>Lưu sinh viên</span>
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto custom-scroll">
+                      <table className="w-full text-xs text-left">
+                        <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                          <tr>
+                            <th className="py-2.5 px-3 w-10 text-center">#</th>
+                            <th className="py-2.5 px-3 w-28">Mã SV</th>
+                            <th className="py-2.5 px-3 min-w-[150px]">Họ và tên</th>
+                            <th className="py-2.5 px-3 min-w-[130px]">Lớp đào tạo</th>
+                            <th className="py-2.5 px-3 w-16 text-center">Giới tính</th>
+                            <th className="py-2.5 px-3 min-w-[140px]">Phụ huynh liên kết</th>
+                            <th className="py-2.5 px-3 min-w-[140px]">CVHT phụ trách</th>
+                            <th className="py-2.5 px-3 text-right w-20">Thao tác</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          {(dbData?.students || [])
+                            .filter(s => studentClassFilter === 'ALL' || s.class_name === studentClassFilter)
+                            .filter(s => {
+                              const kw = studentSearch.trim().toLowerCase();
+                              if (!kw) return true;
+                              return s.full_name.toLowerCase().includes(kw) || (s.student_code || '').toLowerCase().includes(kw);
+                            })
+                            .map((s, idx) => (
+                              <tr key={s.id} className="hover:bg-slate-50/80 transition">
+                                <td className="py-2.5 px-3 text-center text-slate-400 tabular-nums">{idx + 1}</td>
+                                <td className="py-2.5 px-3 font-mono font-semibold text-brand-600">{s.student_code}</td>
+                                <td className="py-2.5 px-3 font-medium text-slate-900">{s.full_name}</td>
+                                <td className="py-2.5 px-3"><span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-medium">{s.class_name}</span></td>
+                                <td className="py-2.5 px-3 text-center text-slate-600">{s.gender || 'Nam'}</td>
+                                <td className="py-2.5 px-3">
+                                  <div>{s.parent_name || 'Chưa cập nhật'}</div>
+                                  <div className="text-[10px] text-slate-400 font-mono">{s.parent_phone || '—'}</div>
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-600">{s.teacher_name || 'Thầy Nguyễn Văn An'}</td>
+                                <td className="py-2.5 px-3 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteStudentAdmin(s.id, s.full_name, s.student_code, s.class_name)}
+                                    className="px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ml-auto"
+                                    title="Xóa sinh viên khỏi hệ thống"
+                                  >
+                                    <Icon name="trash" className="w-3 h-3" />
+                                    <span>Xóa</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 4: HỌC PHÍ & TÀI CHÍNH */}
+              {currentTab === 'fees' && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+                      <div>
+                        <h2 className="text-base font-bold text-slate-900">Tổng hợp thu học phí toàn trường</h2>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Tính theo mức thu {currentTuitionNum.toLocaleString('vi-VN')} VNĐ/SV cho 1.250 sinh viên.
+                        </p>
+                      </div>
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold text-xs rounded-full self-start sm:self-center">
+                        Đạt 94.2% kế hoạch
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <span className="text-slate-500 font-medium">Tổng dự thu kỳ học</span>
+                        <p className="text-lg font-bold text-slate-900 tabular-nums mt-1">{totalEstimatedFee.toLocaleString('vi-VN')} đ</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <span className="text-emerald-700 font-medium">Đã thu qua VietQR</span>
+                        <p className="text-lg font-bold text-emerald-600 tabular-nums mt-1">{collectedFee.toLocaleString('vi-VN')} đ</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <span className="text-amber-700 font-medium">Còn lại chưa thu</span>
+                        <p className="text-lg font-bold text-amber-600 tabular-nums mt-1">{remainingFee.toLocaleString('vi-VN')} đ</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Form chỉnh mức học phí đồng bộ */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">Cấu hình mức thu học phí & mã VietQR</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Thay đổi tại đây sẽ cập nhật ngay số tiền và mã QR trên cổng Sinh viên và cổng Phụ huynh.
+                      </p>
+                    </div>
+                    <form onSubmit={handleSaveTuitionConfig} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Đợt thu / Học kỳ</label>
+                        <input
+                          type="text"
+                          value={semesterInput}
+                          onChange={e => setSemesterInput(e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] outline-none focus:border-brand-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Mức học phí (VNĐ)</label>
+                        <input
+                          type="number"
+                          min="100000"
+                          step="50000"
+                          value={tuitionInput}
+                          onChange={e => setTuitionInput(e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums outline-none focus:border-brand-600"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg shadow-sm transition h-[38px] cursor-pointer"
+                      >
+                        Cập nhật mức thu
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: PHÁT & QUẢN LÝ THÔNG BÁO */}
+              {currentTab === 'announcements' && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900">Phát thông báo toàn trường</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Thông báo mới sẽ xuất hiện trực tiếp trên cổng Phụ huynh để xác nhận đã đọc.
+                      </p>
+                    </div>
+
+                    <form onSubmit={handlePostAnnouncement} className="space-y-3.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-semibold text-slate-600 mb-1">Tiêu đề thông báo</label>
+                          <input
+                            type="text"
+                            value={newAnn.title}
+                            onChange={e => setNewAnn(prev => ({ ...prev, title: e.target.value }))}
+                            placeholder="VD: Thông báo nghỉ lễ và lịch học bù học kỳ I..."
+                            className="w-full px-3 py-2 rounded-lg border border-slate-300 text-[13px] outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1">Phân loại</label>
+                          <select
+                            value={newAnn.tag}
+                            onChange={e => setNewAnn(prev => ({ ...prev, tag: e.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-300 text-[13px] bg-white outline-none focus:border-brand-600"
+                          >
+                            <option value="HỌC VỤ">Học vụ</option>
+                            <option value="KHẨN CẤP">Khẩn cấp</option>
+                            <option value="TÀI CHÍNH">Tài chính</option>
+                            <option value="THÔNG THƯỜNG">Thông thường</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Nội dung chi tiết</label>
+                        <textarea
+                          rows="3"
+                          value={newAnn.content}
+                          onChange={e => setNewAnn(prev => ({ ...prev, content: e.target.value }))}
+                          placeholder="Nhập nội dung gửi tới giảng viên, sinh viên và phụ huynh..."
+                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-[13px] outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15"
+                          required
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs transition shadow-sm cursor-pointer"
+                      >
+                        Phát thông báo ngay
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Danh sách thông báo đã đăng */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-3">
+                    <h3 className="font-semibold text-sm text-slate-900 pb-2 border-b border-slate-100">
+                      Thông báo đang hiển thị ({announcements.length})
+                    </h3>
+                    {announcements.length === 0 ? (
+                      <div className="py-6 text-center text-xs text-slate-400">Chưa có thông báo nào.</div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {announcements.map(ann => (
+                          <div key={ann.id} className="p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="px-2 py-0.5 rounded bg-blue-50 text-brand-600 border border-blue-100 text-[10px] font-semibold">
+                                  {ann.tag || 'HỌC VỤ'}
+                                </span>
+                                <span className="font-semibold text-sm text-slate-900">{ann.title}</span>
+                              </div>
+                              <p className="text-xs text-slate-600 leading-relaxed">{ann.content}</p>
+                              <div className="text-[11px] text-slate-400">
+                                Ngày đăng: {formatDateVN(ann.created_at)} • {(ann.read_by || []).length} phụ huynh đã xác nhận đọc
+                              </div>
+                            </div>
+
+                            <div className="shrink-0">
+                              {deletingAnnId === ann.id ? (
+                                <div className="flex items-center gap-1.5 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200 text-xs">
+                                  <button
+                                    onClick={() => handleDeleteAnnouncement(ann.id)}
+                                    className="px-2 py-0.5 bg-red-600 text-white rounded font-semibold cursor-pointer"
+                                  >
+                                    Xóa
+                                  </button>
+                                  <button
+                                    onClick={() => setDeletingAnnId(null)}
+                                    className="text-slate-600 px-1 cursor-pointer"
+                                  >
+                                    Hủy
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setDeletingAnnId(ann.id)}
+                                  className="px-2.5 py-1 rounded-md border border-slate-200 hover:border-red-300 hover:text-red-600 text-xs text-slate-500 font-medium transition cursor-pointer"
+                                >
+                                  Gỡ bỏ
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 6: NHẬP / XUẤT EXCEL */}
+              {currentTab === 'excel' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                  <div className="pb-3 border-b border-slate-100">
+                    <h2 className="text-base font-bold text-slate-900">Nhập & Xuất dữ liệu Excel (.xlsx)</h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Hỗ trợ xuất báo cáo tổng hợp thực tế và nhập nhanh danh sách sinh viên khóa mới bằng SheetJS.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col justify-between gap-4">
+                      <div>
+                        <h3 className="font-semibold text-sm text-slate-900">Xuất báo cáo tổng hợp sinh viên</h3>
+                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                          Tải bảng tổng hợp {students.length} sinh viên kèm điểm trung bình và tỷ lệ chuyên cần thực tế hiện tại.
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleExportSchoolReport}
+                        className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Icon name="excel" className="w-4 h-4" />
+                        <span>Xuất báo cáo (.xlsx)</span>
+                      </button>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col justify-between gap-4">
+                      <div>
+                        <h3 className="font-semibold text-sm text-slate-900">Nhập danh sách sinh viên từ Excel</h3>
+                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                          Đọc file .xlsx / .csv gồm các cột: Mã SV, Họ và tên, Lớp, Giới tính, Phụ huynh, SĐT Phụ huynh.
+                        </p>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".xlsx,.xls,.csv"
+                          onChange={handleImportStudentsFile}
+                          className="hidden"
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex-1 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-semibold text-xs rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Icon name="upload" className="w-4 h-4" />
+                          <span>Chọn file Excel</span>
+                        </button>
+                        <button
+                          onClick={handleDownloadTemplate}
+                          className="px-3 py-2.5 bg-blue-50 hover:bg-blue-100 text-brand-600 font-semibold text-xs rounded-lg transition cursor-pointer"
+                        >
+                          File mẫu
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 7: NHẬT KÝ HỆ THỐNG */}
+              {currentTab === 'audits' && (
+                <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                  <div className="pb-3 border-b border-slate-100 flex items-center justify-between gap-2">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900">Nhật ký hoạt động hệ thống</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Ghi nhận các thao tác quản trị, phát thông báo, xuất/nhập dữ liệu và đơn từ trên hệ thống.
+                      </p>
+                    </div>
+                    <span className="text-xs text-slate-500 font-mono">{auditLogs.length} bản ghi</span>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 text-[13px]">
+                    {auditLogs.map(log => (
+                      <div key={log.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <div>
+                          <span className="font-semibold text-slate-900">{log.user}</span>
+                          <span className="mx-2 text-slate-300">•</span>
+                          <span className="font-medium text-brand-600 text-xs">{log.action}</span>
+                          <span className="text-slate-600 text-xs ml-2">({log.target})</span>
+                        </div>
+                        <span className="text-xs text-slate-400 font-mono tabular-nums shrink-0">{log.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
+
+          {/* Thông báo nổi */}
+          {toast && (
+            <div
+              role="status"
+              className={`fixed bottom-5 right-5 z-50 px-4 py-3 bg-white rounded-xl shadow-lg border border-slate-200 border-l-4 max-w-sm ${
+                toast.type === 'error'
+                  ? 'border-l-red-600'
+                  : toast.type === 'info'
+                  ? 'border-l-brand-600'
+                  : 'border-l-emerald-600'
+              }`}
+            >
+              <div className="text-[13px] font-semibold text-slate-900">{toast.title}</div>
+              <p className="text-xs text-slate-500 mt-0.5">{toast.message}</p>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-400 mt-auto">
+            © 2026 Trường Cao đẳng Công nghiệp Huế (HueIC) — Cổng Quản trị & Ban Giám hiệu • SchoolPulse
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<AdminApp />);
+  </script>
+</body>
+</html>

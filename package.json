@@ -1,0 +1,18 @@
+{
+  "name": "hueic-webapp-server",
+  "version": "1.0.0",
+  "description": "Cong thong tin & So lien lac dien tu HueIC tich hop xac thuc OTP",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.5.0"
+  }
+}
