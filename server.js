@@ -7,7 +7,13 @@ const mongoose = require('mongoose');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use((req, res, next) => {
+  if (req.path === '/server.js' || req.path === '/package.json' || req.path.startsWith('/.')) {
+    return res.status(403).send('Forbidden');
+  }
+  next();
+});
+app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Ket noi MongoDB Atlas
