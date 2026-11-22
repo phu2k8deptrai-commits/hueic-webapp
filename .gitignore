@@ -1,4 +1,6 @@
+# Local environment & scratch
 node_modules/
-.env
-.DS_Store
+.git/
+.vscode/
 *.log
+*.tmp
